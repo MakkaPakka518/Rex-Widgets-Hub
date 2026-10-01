@@ -1,5 +1,3 @@
-
-
 var HTML = String.raw`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
