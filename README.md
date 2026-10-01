@@ -180,8 +180,8 @@ Rex 模块是普通的 JavaScript 脚本，可在文件头部声明元数据（�
 
 ```js
 /* WidgetMetadata {
-  "id": "com.example.weather",
-  "title": "天气模块",
+  "id": "com.example.widget",
+  "title": "测试模块",
   "version": "1.0.0",
   "author": "你的名字"
 } */
