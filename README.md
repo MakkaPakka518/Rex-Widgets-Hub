@@ -40,7 +40,7 @@
 
 ---
 
-## 部署教程（Cloudflare）
+## ⭐️部署教程（Cloudflare）
 
 > 全程在 [dash.cloudflare.com](https://dash.cloudflare.com) 完成，无需本地环境。
 
