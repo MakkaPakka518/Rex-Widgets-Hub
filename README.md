@@ -6,7 +6,7 @@
 
 ---
 ## 预览图
-预览网页：test.fwd.ccwu.cc 密码：test
+预览网页：https://test.fwd.ccwu.cc 密码：test
 ![网页预览图](HOME.JPEG)![网页预览图](SET.JPEG)
 
 ## 功能特性
