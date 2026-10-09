@@ -962,6 +962,12 @@ export default {
     const ADMIN_HASH = (await env.REX_KV.get('admin_password')) || (env.ADMIN_SECRET ? await sha256(env.ADMIN_SECRET) : '');
     const PUBLIC_HASH = env.PUBLIC_SECRET ? await sha256(env.PUBLIC_SECRET) : '';
     const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (['POST', 'PUT', 'PATCH'].includes(method)) {
+      const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+      if (contentLength > 1000000) {
+        return json({ error: 'payload too large' }, 413);
+      }
+    }
     function verifyAuth(r) {
       const c = (r.headers.get('Cookie')||'').match(/fwh_admin=([^;]+)/);
       return !!ADMIN_HASH && !!c && safeEqual(c[1], ADMIN_HASH);
