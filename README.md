@@ -24,6 +24,11 @@
 - 把任意模块挑选组合成「合集」，生成 `.rex` 订阅链接
 - 链接格式：`https://你的域名/api/collections/{合集名}.rex`
 
+### 一键添加到 Rex
+- 模块卡片与合集卡片上的红色 **+Rex** 按钮，点击直接跳转 `rex://widget?url=<订阅链接>`，在 Rex 中一键添加该模块或订阅整个合集
+- 模块：`rex://widget?url=https://你的域名/api/modules/{id}/raw`
+- 合集：`rex://widget?url=https://你的域名/api/collections/{合集名}.rex`
+
 ### 订阅用户模式（订阅用户面板）
 - 管理员可**发放订阅者密码**，并管理每个订阅者的可生成次数
 - 订阅者用密码登录后进入**只读模式**：
