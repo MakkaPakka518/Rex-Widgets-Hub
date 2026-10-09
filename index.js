@@ -39,7 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .poster .input{background:rgba(255,255,255,0.08);color:#fff}
 .poster .toast{background:#fff;color:#111}
 /* 海报墙 */
-#posterWallWrapper{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-10;overflow:hidden;pointer-events:none;background:linear-gradient(165deg,#201048 0%,#0f1f49 45%,#28185a 100%)}
+#posterWallWrapper{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-10;overflow:hidden;pointer-events:none;background:linear-gradient(165deg,#2a1660 0%,#16306b 45%,#341f78 100%)}
 #posterWallRotate{position:absolute;top:-50%;left:-50%;width:200%;height:200%;transform:rotate(-12deg)}
 .poster #posterWallWrapper{display:block}
 #posterWallMover{width:100%;height:auto;display:flex;flex-direction:column;animation:wallScrollUp 80s linear infinite;will-change:transform}
@@ -748,7 +748,7 @@ function updatePosterWall(){
   var list = posters.slice();
   while(list.length < 96) list = list.concat(posters);
   var html = '';
-  for(var j=0;j<list.length;j++) html += '<img src="'+list[j]+'" class="poster-img" loading="lazy" draggable="false" alt="Poster">';
+  for(var j=0;j<list.length;j++) html += '<img src="'+list[j]+'" class="poster-img" loading="eager" decoding="async" draggable="false" alt="Poster">';
   g1.innerHTML = html;
   g2.innerHTML = html;
 }
