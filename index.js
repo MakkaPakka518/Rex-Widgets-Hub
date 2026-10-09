@@ -993,7 +993,7 @@ export default {
     if (path === '/api/admin/modules') {
       const mods = await getModules();
       if (method === 'GET') {
-        if (!verifyAuth(request) && !(await findSubscriber(request))) return json({ error: 'Unauthorized' }, 401);
+        if (!verifyAuth(request) && !(await findSubscriber(request)) && !verifyPublicAuth(request)) return json({ error: 'Unauthorized' }, 401);
         return json(mods);
       }
       if (!verifyAuth(request)) return json({ error: 'Unauthorized' }, 401);
