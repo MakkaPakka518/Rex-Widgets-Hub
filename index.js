@@ -464,7 +464,7 @@ function renderCols(){
     if(c.icon_url) h+='<img src="'+esc(c.icon_url)+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover" onerror="this.remove()">';
     h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+cntText+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
       '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
-      '<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button></div></div>';
+      '<div style="margin-top:10px">'+(state.isPub?'':'<button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button>')+'</div></div>';
   });
   document.getElementById('collectionsList').innerHTML=h;
 }
@@ -534,7 +534,7 @@ function showAddCol(){
     if(state.isSub && !/^[A-Za-z0-9]+$/.test(payload.title)){ toast('合集名称只能为数字或英文'); return; }
     api('/api/admin/collections',{method:'POST',json:payload}).then(function(r){
       if(r&&r.ok){
-        if(state.isPub && r.exists){ toast('该模块组合已存在，为你跳转到已有合集'); close(); loadAll().then(function(){ showPickMods(r.id); }); }
+        if(state.isPub && r.exists){ toast('该模块组合已存在，为你跳转到已有合集'); close(); loadAll().then(function(){ showColModules(r.id); }); }
         else { toast('合集已创建'); close(); loadAll(); }
       } else toast(r&&r.error?r.error:'创建失败');
     });
@@ -567,7 +567,7 @@ function showEditCol(id){
   var col = state.collections.find(function(c){ return c.id===id; });
   if(!col) return;
   if(state.isPub){
-    showModal('合集信息', '<div style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">标题 / 描述 / 图标为固定模板，不可更改。<br>如需调整模块，请点击合集卡片上的「从模块池挑选」。</div>', function(close){ close(); });
+    showModal('合集信息', '<div style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">标题 / 描述 / 图标为固定模板，不可更改。<br>公共用户合集的模块列表已锁定，不可手动增删。<br>创建时勾选「选择全部模块」的合集，管理者后续上传的新模块会自动加入。</div>', function(close){ close(); });
     return;
   }
   showModal('编辑合集',
@@ -587,6 +587,7 @@ function showEditCol(id){
 function showPickMods(colId){
   var col = state.collections.find(function(c){ return c.id===colId; });
   if(!col) return;
+  if(state.isPub){ showColModules(colId); return; }
   if(!state.modules.length){ toast('请先上传模块'); return; }
   var modIds = col.moduleIds || [];
   var isAll = !!col.autoAll;
@@ -1434,6 +1435,9 @@ export default {
         if ((sub || pub) && col.owner !== subTag) return json({ error: 'Forbidden' }, 403);
         if (pub && (body.title !== undefined || body.description !== undefined || body.icon_url !== undefined)) {
           return json({ error: '公共用户合集标题/描述/图标为固定模板，不可修改' }, 403);
+        }
+        if (pub && (body.moduleIds !== undefined || body.autoAll !== undefined)) {
+          return json({ error: '公共用户合集模块列表已锁定，不可手动增删' }, 403);
         }
         if (body.title !== undefined) {
           const t = String(body.title).trim();
