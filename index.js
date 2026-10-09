@@ -971,6 +971,7 @@ checkAuth();
 <\/script>
 </body>
 </html>`;
+const loginFailCache = new Map();
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -1015,15 +1016,16 @@ export default {
     }
     
     async function loginLocked(ip) {
-      const n = parseInt((await env.REX_KV.get('rl:login:'+ip)) || '0', 10);
-      return n >= 5;
+      const e = loginFailCache.get(ip);
+      return !!(e && e.count >= 5 && e.expire > Date.now());
     }
     async function addLoginFail(ip) {
-      const k = 'rl:login:'+ip;
-      const n = parseInt((await env.REX_KV.get(k)) || '0', 10) + 1;
-      await env.REX_KV.put(k, String(n), { expirationTtl: 600 });
+      const e = loginFailCache.get(ip) || { count: 0, expire: 0 };
+      e.count += 1;
+      e.expire = Date.now() + 600000;
+      loginFailCache.set(ip, e);
     }
-    async function clearLoginFails(ip) { await env.REX_KV.delete('rl:login:'+ip); }
+    async function clearLoginFails(ip) { loginFailCache.delete(ip); }
 
     async function getModules() { const d = await env.REX_KV.get('modules','json'); return d||[]; }
     async function saveModules(m) { await env.REX_KV.put('modules',JSON.stringify(m)); }
