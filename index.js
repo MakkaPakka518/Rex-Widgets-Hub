@@ -18,7 +18,7 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .page{display:none;position:fixed;left:14px;right:14px;top:98px;max-height:calc(100vh - 216px);flex-direction:column;overflow:hidden;padding:12px 12px 0;background:var(--card);border:1px solid transparent;border-radius:22px;box-shadow:none}
 .page.active{display:flex}
 .page-fixed{flex:none}
-.page-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:0 0 16px}
+.page-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:0 0 44px}
 .card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sep)}
 .row:last-child{border-bottom:none}
