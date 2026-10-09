@@ -39,7 +39,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .poster .input{background:rgba(255,255,255,0.08);color:#fff}
 .poster .toast{background:#fff;color:#111}
 /* 海报墙 */
-#posterWallWrapper{display:none;position:fixed;top:-50%;left:-50%;width:200%;height:200%;z-index:-10;transform:rotate(-12deg) translateZ(0);overflow:hidden;pointer-events:none;background:linear-gradient(165deg,#201048 0%,#0f1f49 45%,#28185a 100%)}
+#posterWallWrapper{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-10;overflow:hidden;pointer-events:none;background:linear-gradient(165deg,#201048 0%,#0f1f49 45%,#28185a 100%)}
+#posterWallRotate{position:absolute;top:-50%;left:-50%;width:200%;height:200%;transform:rotate(-12deg)}
 .poster #posterWallWrapper{display:block}
 #posterWallMover{width:100%;height:auto;display:flex;flex-direction:column;animation:wallScrollUp 80s linear infinite;will-change:transform}
 @keyframes wallScrollUp{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
@@ -137,7 +138,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 </head>
 <body>
 
-<div id="posterWallWrapper"><div id="posterWallMover"><div id="posterGrid1" class="poster-grid"></div><div id="posterGrid2" class="poster-grid"></div></div></div>
+<div id="posterWallWrapper"><div id="posterWallRotate"><div id="posterWallMover"><div id="posterGrid1" class="poster-grid"></div><div id="posterGrid2" class="poster-grid"></div></div></div></div>
 <div class="blur-overlay-top"></div>
 <div class="blur-overlay-bottom"></div>
 
