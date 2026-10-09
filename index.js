@@ -35,6 +35,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .btn-xs{width:32px;height:32px;border-radius:9px;border:none;background:transparent;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0}
 .btn-xs:hover{background:rgba(0,0,0,0.05);color:var(--text)}
 .btn-xs.danger:hover{background:rgba(255,59,48,0.1);color:var(--red)}
+.rex-add{display:inline-flex;align-items:center;gap:3px;padding:5px 9px;border-radius:9px;border:none;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(135deg,#ed1c24,#ff7a45);cursor:pointer;flex-shrink:0;box-shadow:0 2px 6px rgba(237,28,36,0.3)}
+.rex-add:hover{opacity:0.9}
+.rex-add svg{width:13px;height:13px;stroke-width:2.2}
 .btn{border:none;cursor:pointer;font-size:14px;font-weight:500;padding:8px 18px;border-radius:20px;font-family:inherit;background:var(--bg);color:var(--text)}
 .dark .modal h3{color:#fff}
 .dark .modal p{color:#fff}
@@ -159,6 +162,7 @@ var I = {
   up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>',
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>',
   link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4.93"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07L13 19.07"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
   sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   sunmoon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
@@ -252,6 +256,7 @@ function renderMods(){
     var ie=m.is_encrypted?I.lock:I.doc;
     h+='<div class="row"><div class="ico-sq" style="background:'+ib+'">'+ie+'</div><div class="info"><div class="name">'+esc(m.title||m.filename)+'</div><div class="sub">'+esc(m.filename)+' · '+fmt(m.file_size)+(m.note?'<br>'+esc(m.note):'')+'</div></div>'+
       (m.version?'<span class="badge badge-blue">'+esc(m.version)+'</span>':'')+
+      '<button class="rex-add" onclick="addToRexMod(\''+m.id+'\')" title="一键添加到Rex">'+I.plus+'Rex</button>'+
       '<div class="menu-wrap"><button class="btn-xs" onclick="toggleMenu(event,\''+m.id+'\')">'+I.dots+'</button>'+
       '<div class="menu-drop" id="menu-'+m.id+'" style="display:none">'+
       '<button onclick="copyModLink(\''+m.id+'\')">'+I.copy+'复制链接</button>'+
@@ -276,6 +281,10 @@ async function doUploadMods(input){
 }
 
 function copyModLink(id){ copyText(org()+'/api/modules/'+id+'/raw'); }
+// 一键添加到 Rex：跳转 rex://widget?url=<模块/合集订阅链接>
+function addToRex(url){ location.href='rex://widget?url='+url; }
+function addToRexMod(id){ addToRex(org()+'/api/modules/'+id+'/raw'); }
+function addToRexCol(slug){ addToRex(org()+'/api/collections/'+slug+'.rex'); }
 function toggleMenu(e, id) {
   e.stopPropagation();
   var d = document.getElementById('menu-' + id);
@@ -420,7 +429,7 @@ function renderCols(){
     h+='<div class="card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">';
     if(c.icon_url) h+='<img src="'+esc(c.icon_url)+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover" onerror="this.remove()">';
     h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+n+' 个模块'+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
-      '<div style="display:flex;gap:2px"><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button><button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
+      '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button><button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
       '<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button></div></div>';
   });
   document.getElementById('collectionsList').innerHTML=h;
