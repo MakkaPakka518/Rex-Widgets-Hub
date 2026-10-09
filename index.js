@@ -8,7 +8,9 @@ var HTML = String.raw`<!DOCTYPE html>
 <style>
 :root{--bg:#F2F2F7;--card:#FFF;--accent:#007AFF;--text:#1C1C1E;--text2:#8E8E93;--text3:#C7C7CC;--sep:rgba(60,60,67,0.12);--red:#FF3B30;--green:#34C759;--radius:20px;--dock-bg:rgba(248,248,248,0.72)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y;overscroll-behavior:none}
+img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+input,textarea{user-select:text;-webkit-user-select:text}
 .header{padding:16px 20px 4px;position:sticky;top:0;z-index:10;background:var(--bg)}
 .header h1{font-size:34px;font-weight:700;letter-spacing:-0.5px}
 .header p{font-size:14px;color:var(--text2);margin-top:2px}
@@ -472,7 +474,7 @@ function promptDeleteMod(id){
 
 function renderCols(){
   var cs = state.collections;
-  var warn = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;background:rgba(255,149,0,0.12);border-radius:10px;padding:8px 10px;margin-bottom:10px">'+(state.isPub?'公共用户 · 可无限生成合集':'订阅者剩余可生成合集 '+((state.subInfo&&state.subInfo.remaining!=null)?state.subInfo.remaining:'-')+' 次')+' · 名称仅限数字或英文</div>' : '';
+  var warn = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;background:rgba(255,149,0,0.12);border-radius:10px;padding:8px 10px;margin-bottom:10px">'+(state.isPub?'公共用户 · 可无限生成合集 · 标题/描述/图标为固定模板，不可修改':'订阅者剩余可生成合集 '+((state.subInfo&&state.subInfo.remaining!=null)?state.subInfo.remaining:'-')+' 次 · 名称仅限数字或英文')+'</div>' : '';
   document.getElementById('colCount').textContent='共 '+cs.length+' 个合集';
   if(!cs.length){ document.getElementById('collectionsList').innerHTML=warn+'<div class="empty"><div class="ico">'+I.box+'</div><p>暂无合集</p></div>'; return; }
   var h=warn;
@@ -525,7 +527,7 @@ function syncAllPickState(){
 }
 
 function showAddCol(){
-  var quotaNote = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;margin:0 0 8px">'+(state.isPub?'公共用户可无限生成':'剩余可生成 '+(state.subInfo&&state.subInfo.remaining!=null?state.subInfo.remaining:'-')+' 次')+' · 名称仅限数字或英文</div>' : '';
+  var quotaNote = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;margin:0 0 8px">'+(state.isPub?'公共用户可无限生成 · 标题/描述/图标为固定模板，不可修改':'剩余可生成 '+(state.subInfo&&state.subInfo.remaining!=null?state.subInfo.remaining:'-')+' 次 · 名称仅限数字或英文')+'</div>' : '';
   var body;
   if(state.isPub){
     var pubDesc = '在网站：' + location.hostname + ' 自选的玛卡巴卡的模块合集';
@@ -677,7 +679,7 @@ function subInfoHtml(){
   if(state.isPub){
     return '<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">公共用户信息</div>'+
       '<p style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">当前模式：公共用户<br>可生成合集次数：不限（无限次）</p>'+
-      '<p style="font-size:12px;color:#FF9500;line-height:1.7;margin:10px 0 0">公共用户模式为只读：不能上传或管理模块，只能挑选面板内的模块创建合集；合集名称仅限数字或英文。</p></div>';
+      '<p style="font-size:12px;color:#FF9500;line-height:1.7;margin:10px 0 0">公共用户模式为只读：不能上传或管理模块，只能挑选面板内的模块创建合集；合集的标题/描述/图标为固定模板，不可修改。</p></div>';
   }
   var si = state.subInfo || {};
   return '<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">订阅信息</div>'+
@@ -899,6 +901,13 @@ function showPrompt(title, def, cb) {
   document.getElementById('mC').addEventListener('click',function(){cl(document.getElementById('promptInput').value);});
 }
 
+(function(){
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, {passive:false});
+  document.addEventListener('dblclick', function(e){ e.preventDefault(); }, {passive:false});
+  document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+  document.addEventListener('touchmove', function(e){ if(e.touches && e.touches.length > 1) e.preventDefault(); }, {passive:false});
+  document.addEventListener('wheel', function(e){ if(e.ctrlKey) e.preventDefault(); }, {passive:false});
+})();
 (function(){
   var v = localStorage.getItem('fwh_theme');
   if(v==='dark') document.documentElement.classList.add('dark');
