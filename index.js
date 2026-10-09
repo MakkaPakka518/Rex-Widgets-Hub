@@ -49,8 +49,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .poster-img{width:100%;height:auto;border-radius:8px;opacity:0.8;transition:opacity .3s;box-shadow:0 4px 8px -2px rgba(0,0,0,.6);object-fit:cover;aspect-ratio:2/3;-webkit-user-drag:none}
 .blur-overlay-top{display:none;position:fixed;top:0;left:0;width:100%;height:40vh;z-index:-5;pointer-events:none;backdrop-filter:blur(20px) saturate(110%);-webkit-backdrop-filter:blur(20px) saturate(110%);mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);background:rgba(255,255,255,0.02)}
 .poster .blur-overlay-top{display:block}
-.blur-overlay-bottom{display:none;position:fixed;bottom:0;left:0;width:100%;height:50vh;z-index:-5;pointer-events:none;backdrop-filter:blur(20px) saturate(110%);-webkit-backdrop-filter:blur(20px) saturate(110%);mask-image:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);-webkit-mask-image:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);background:rgba(255,255,255,0.02)}
-.poster .blur-overlay-bottom{display:block}
+
 @media(prefers-color-scheme:dark){:root:not(.dark):not(.light){--bg:#000;--card:#1C1C1E;--accent:#0A84FF;--text:#FFF;--text2:#98989D;--text3:#636366;--sep:rgba(84,84,88,0.65);--dock-bg:rgba(28,28,30,0.72)}:root:not(.dark):not(.light) .modal-overlay{background:rgba(0,0,0,0.6)}:root:not(.dark):not(.light) .modal h3,:root:not(.dark):not(.light) .modal p{color:#fff}}
 .btn-xs{width:32px;height:32px;border-radius:9px;border:none;background:transparent;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0}
 .btn-xs:hover{background:rgba(0,0,0,0.05);color:var(--text)}
@@ -140,7 +139,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 
 <div id="posterWallWrapper"><div id="posterWallRotate"><div id="posterWallMover"><div id="posterGrid1" class="poster-grid"></div><div id="posterGrid2" class="poster-grid"></div></div></div></div>
 <div class="blur-overlay-top"></div>
-<div class="blur-overlay-bottom"></div>
 
 <div id="loginGate" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:80vh">
 <div style="text-align:center"><img src="https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/REX.png" alt="REX" style="width:72px;height:72px;margin:0 auto 14px;border-radius:18px;object-fit:cover;display:block;box-shadow:0 6px 20px rgba(0,0,0,0.15)"><h2 style="font-size:22px;font-weight:700">Widgets For Rex</h2><p style="color:#8E8E93;font-size:14px;margin:6px 0 18px">请输入密码</p><p style="color:#B0B0B5;font-size:12px;margin:0 0 22px">管理员、订阅者或公共密码均可登录</p><input type="password" id="pwInput" class="input" style="max-width:280px;text-align:center" placeholder="密码" onkeydown="if(event.key==='Enter')login()"><button class="btn btn-primary" style="width:100%;max-width:280px;margin-top:10px;padding:12px" onclick="login()">登录</button><p id="loginErr" style="color:#FF3B30;font-size:13px;margin-top:10px;display:none"></p></div></div>
