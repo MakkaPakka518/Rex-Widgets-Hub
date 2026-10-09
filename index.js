@@ -1476,8 +1476,10 @@ export default {
           const host = (request.headers.get('Host')||'').split(':')[0];
           description = '在网站：' + host + ' 自选的玛卡巴卡的模块合集';
           icon_url = 'https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/Rex-Makka.JPEG';
-          // 模块集合去重（不论顺序）：已有相同组合的公共合集则直接复用
+          // 模块集合去重（不论顺序）：先复用官方合集（autoAll 语义匹配或组合相同），再复用已有公共合集
           const sig = moduleIds.slice().sort().join(',');
+          const dupOfficial = cols.find(c => c.official && ((c.autoAll && autoAll) || (c.moduleIds && c.moduleIds.slice().sort().join(',') === sig)));
+          if (dupOfficial) return json({ ok: true, exists: true, id: dupOfficial.id, slug: dupOfficial.slug }, 200);
           const dup = cols.find(c => c.owner === 'pub' && c.moduleIds && c.moduleIds.slice().sort().join(',') === sig);
           if (dup) return json({ ok: true, exists: true, id: dup.id, slug: dup.slug }, 200);
         } else {
