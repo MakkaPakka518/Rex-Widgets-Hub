@@ -903,11 +903,24 @@ export default {
       if (method !== 'POST') return json({ error: 'Method not allowed' }, 405);
       const body = await request.json().catch(() => ({}));
       if (!body.url) return json({ error: 'url required' }, 400);
+      let importUrl;
+      try { importUrl = new URL(body.url); } catch (e) { return json({ error: 'invalid url' }, 400); }
+      const importHost = importUrl.hostname.toLowerCase();
+      const isBlockedHost = importHost === 'localhost' || importHost === '0.0.0.0'
+        || /^127\./.test(importHost) || /^10\./.test(importHost) || /^192\.168\./.test(importHost)
+        || /^172\.(1[6-9]|2\d|3[01])\./.test(importHost) || /^169\.254\./.test(importHost)
+        || importHost === '::1' || importHost.includes(':') || importHost === 'metadata.google.internal';
+      if (!/^https?:$/.test(importUrl.protocol) || isBlockedHost) {
+        return json({ error: 'url not allowed' }, 400);
+      }
       const mods = await getModules();
       const now = Date.now();
       let filename = body.filename || '';
       try {
-        const remoteResp = await fetch(body.url);
+        const remoteResp = await fetch(importUrl.toString(), { redirect: 'manual' });
+        if (remoteResp.status >= 300 && remoteResp.status < 400) {
+          return json({ error: 'redirects are not allowed for import URL' }, 400);
+        }
         if (!remoteResp.ok) return json({ error: 'Failed to fetch URL: '+remoteResp.status }, 400);
         const buf = await remoteResp.arrayBuffer();
         if (buf.byteLength > 25*1024*1024) return json({ error: 'File too large (KV limit 25MB)' }, 413);
