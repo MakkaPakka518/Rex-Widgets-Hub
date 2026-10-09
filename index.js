@@ -32,19 +32,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .menu-drop button.danger{color:var(--red)}
 .menu-drop button.danger:hover{background:rgba(255,59,48,0.08)}
 .dark{--bg:#000;--card:#1C1C1E;--accent:#0A84FF;--text:#FFF;--text2:#98989D;--text3:#636366;--sep:rgba(84,84,88,0.65);--dock-bg:rgba(28,28,30,0.72)}
-.poster{--bg:rgba(8,8,10,0.55);--card:rgba(24,24,28,0.8);--accent:#0A84FF;--text:#FFF;--text2:#B8B8C0;--text3:#70707A;--sep:rgba(255,255,255,0.14);--red:#FF3B30;--green:#34C759;--radius:20px;--dock-bg:rgba(16,16,20,0.55)}
+.poster{--bg:rgba(24,16,54,0.55);--card:rgba(30,22,60,0.8);--accent:#0A84FF;--text:#FFF;--text2:#B8B8C0;--text3:#70707A;--sep:rgba(255,255,255,0.14);--red:#FF3B30;--green:#34C759;--radius:20px;--dock-bg:rgba(16,16,20,0.55)}
 .poster .modal-overlay{background:rgba(0,0,0,0.65)}
-.poster .modal{background:rgba(24,24,28,0.92)}
+.poster .modal{background:rgba(30,22,60,0.92)}
 .poster .modal h3,.poster .modal p,.poster .modal label{color:#fff}
 .poster .input{background:rgba(255,255,255,0.08);color:#fff}
 .poster .toast{background:#fff;color:#111}
 /* 海报墙 */
-#posterWallWrapper{display:none;position:fixed;top:-50%;left:-50%;width:200%;height:200%;z-index:-10;transform:rotate(-12deg) translateZ(0);overflow:hidden;pointer-events:none;background:#050505}
+#posterWallWrapper{display:none;position:fixed;top:-50%;left:-50%;width:200%;height:200%;z-index:-10;transform:rotate(-12deg) translateZ(0);overflow:hidden;pointer-events:none;background:linear-gradient(165deg,#201048 0%,#0f1f49 45%,#28185a 100%)}
 .poster #posterWallWrapper{display:block}
 #posterWallMover{width:100%;height:auto;display:flex;flex-direction:column;animation:wallScrollUp 80s linear infinite;will-change:transform}
 @keyframes wallScrollUp{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
-.poster-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:8px;width:100%;flex-shrink:0}
-@media(min-width:768px){.poster-grid{grid-template-columns:repeat(6,1fr)}}
+.poster-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:8px;width:100%;flex-shrink:0}
+@media(min-width:768px){.poster-grid{grid-template-columns:repeat(9,1fr)}}
 .poster-img{width:100%;height:auto;border-radius:8px;opacity:0.8;transition:opacity .3s;box-shadow:0 4px 8px -2px rgba(0,0,0,.6);object-fit:cover;aspect-ratio:2/3;-webkit-user-drag:none}
 .blur-overlay-top{display:none;position:fixed;top:0;left:0;width:100%;height:40vh;z-index:-5;pointer-events:none;backdrop-filter:blur(20px) saturate(110%);-webkit-backdrop-filter:blur(20px) saturate(110%);mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);background:rgba(255,255,255,0.02)}
 .poster .blur-overlay-top{display:block}
@@ -748,7 +748,7 @@ function updatePosterWall(){
   for(var i=1;i<=30;i++) posters.push(base+i+'.webp');
   posters.sort(function(){ return 0.5 - Math.random(); });
   var list = posters.slice();
-  while(list.length < 60) list = list.concat(posters);
+  while(list.length < 96) list = list.concat(posters);
   var html = '';
   for(var j=0;j<list.length;j++) html += '<img src="'+list[j]+'" class="poster-img" loading="lazy" draggable="false" alt="Poster">';
   g1.innerHTML = html;
