@@ -31,6 +31,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .menu-drop button.danger{color:var(--red)}
 .menu-drop button.danger:hover{background:rgba(255,59,48,0.08)}
 .dark{--bg:#000;--card:#1C1C1E;--accent:#0A84FF;--text:#FFF;--text2:#98989D;--text3:#636366;--sep:rgba(84,84,88,0.65);--dock-bg:rgba(28,28,30,0.72)}
+.poster{--bg:rgba(8,8,10,0.55);--card:rgba(24,24,28,0.8);--accent:#0A84FF;--text:#FFF;--text2:#B8B8C0;--text3:#70707A;--sep:rgba(255,255,255,0.14);--red:#FF3B30;--green:#34C759;--radius:20px;--dock-bg:rgba(16,16,20,0.55)}
+.poster .modal-overlay{background:rgba(0,0,0,0.65)}
+.poster .modal{background:rgba(24,24,28,0.92)}
+.poster .modal h3,.poster .modal p,.poster .modal label{color:#fff}
+.poster .input{background:rgba(255,255,255,0.08);color:#fff}
+.poster .toast{background:#fff;color:#111}
+/* 海报墙 */
+#posterWallWrapper{display:none;position:fixed;top:-50%;left:-50%;width:200%;height:200%;z-index:-10;transform:rotate(-12deg) translateZ(0);overflow:hidden;pointer-events:none;background:#050505}
+.poster #posterWallWrapper{display:block}
+#posterWallMover{width:100%;height:auto;display:flex;flex-direction:column;animation:wallScrollUp 80s linear infinite;will-change:transform}
+@keyframes wallScrollUp{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+.poster-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:8px;width:100%;flex-shrink:0}
+@media(min-width:768px){.poster-grid{grid-template-columns:repeat(6,1fr)}}
+.poster-img{width:100%;height:auto;border-radius:8px;opacity:0.8;transition:opacity .3s;box-shadow:0 4px 8px -2px rgba(0,0,0,.6);object-fit:cover;aspect-ratio:2/3;-webkit-user-drag:none}
+.blur-overlay-top{display:none;position:fixed;top:0;left:0;width:100%;height:40vh;z-index:-5;pointer-events:none;backdrop-filter:blur(20px) saturate(110%);-webkit-backdrop-filter:blur(20px) saturate(110%);mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);background:rgba(255,255,255,0.02)}
+.poster .blur-overlay-top{display:block}
+.blur-overlay-bottom{display:none;position:fixed;bottom:0;left:0;width:100%;height:50vh;z-index:-5;pointer-events:none;backdrop-filter:blur(20px) saturate(110%);-webkit-backdrop-filter:blur(20px) saturate(110%);mask-image:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);-webkit-mask-image:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);background:rgba(255,255,255,0.02)}
+.poster .blur-overlay-bottom{display:block}
 @media(prefers-color-scheme:dark){:root:not(.dark):not(.light){--bg:#000;--card:#1C1C1E;--accent:#0A84FF;--text:#FFF;--text2:#98989D;--text3:#636366;--sep:rgba(84,84,88,0.65);--dock-bg:rgba(28,28,30,0.72)}:root:not(.dark):not(.light) .modal-overlay{background:rgba(0,0,0,0.6)}:root:not(.dark):not(.light) .modal h3,:root:not(.dark):not(.light) .modal p{color:#fff}}
 .btn-xs{width:32px;height:32px;border-radius:9px;border:none;background:transparent;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0}
 .btn-xs:hover{background:rgba(0,0,0,0.05);color:var(--text)}
@@ -118,6 +136,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 </head>
 <body>
 
+<div id="posterWallWrapper"><div id="posterWallMover"><div id="posterGrid1" class="poster-grid"></div><div id="posterGrid2" class="poster-grid"></div></div></div>
+<div class="blur-overlay-top"></div>
+<div class="blur-overlay-bottom"></div>
+
 <div id="loginGate" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:80vh">
 <div style="text-align:center"><img src="https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/REX.png" alt="REX" style="width:72px;height:72px;margin:0 auto 14px;border-radius:18px;object-fit:cover;display:block;box-shadow:0 6px 20px rgba(0,0,0,0.15)"><h2 style="font-size:22px;font-weight:700">Widgets For Rex</h2><p style="color:#8E8E93;font-size:14px;margin:6px 0 18px">请输入密码</p><p style="color:#B0B0B5;font-size:12px;margin:0 0 22px">管理员、订阅者或公共密码均可登录</p><input type="password" id="pwInput" class="input" style="max-width:280px;text-align:center" placeholder="密码" onkeydown="if(event.key==='Enter')login()"><button class="btn btn-primary" style="width:100%;max-width:280px;margin-top:10px;padding:12px" onclick="login()">登录</button><p id="loginErr" style="color:#FF3B30;font-size:13px;margin-top:10px;display:none"></p></div></div>
 
@@ -139,6 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 <div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:4px">数据统计</div><div class="stat-box"><div class="stat clickable" onclick="switchTab('collections')" style="cursor:pointer"><div class="num" id="statCols">0</div><div class="lbl">合集</div></div><div class="stat clickable" onclick="switchTab('modules')" style="cursor:pointer"><div class="num" id="statMods">0</div><div class="lbl">模块</div></div></div>
 <div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">备份与恢复</div><button class="btn" style="width:100%;margin-top:4px" onclick="exportData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>备份（全部模块+合集）</button><button class="btn" style="width:100%;margin-top:4px" onclick="importBackup()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>恢复（上传备份文件）</button><button class="btn" style="width:100%;margin-top:4px;color:var(--red)" onclick="clearAllData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>清除所有数据</button></div>
 <div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">密码</div><div style="display:flex;gap:8px;margin-top:4px"><input type="password" id="pwdNew" class="input" placeholder="新密码" style="flex:1"><button class="btn btn-primary" style="flex-shrink:0;padding:10px 14px" onclick="changePassword()">修改</button></div></div>
+<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">访客默认主题</div><select id="defaultThemeSel" style="width:100%;border:1.5px solid var(--sep);border-radius:14px;padding:12px 14px;font-size:15px;outline:none;background:var(--card);color:var(--text);font-family:inherit"><option value="auto">跟随系统（黑色/白色）</option><option value="light">白色</option><option value="dark">黑色</option><option value="poster">海报墙</option></select><button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="saveDefaultTheme()">保存默认主题</button><p style="font-size:12px;color:var(--text2);margin:8px 0 0">仅对未手动选择过主题的访客生效（用户自己切换过则保留其选择）</p></div>
 <div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">关于</div><p style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">总占用空间：<span id="statSizeText" style="font-weight:600;color:var(--text)">0 B</span><br>与我交流：<a href="https://t.me/MakkaPakkaOvO" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;text-decoration:none">MakkaPakka</a></p></div></div></div></div>
 
 <div class="dock">
@@ -169,7 +192,8 @@ var I = {
   sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   sunmoon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
   shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
-  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  poster:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20M8 3v5M14 3v5"/></svg>'
 };
 var state = { modules: [], collections: [], tab: 'modules', modReplaceId: null, isAuthed: false, isSub: false, isPub: false, subInfo: null };
 
@@ -613,6 +637,20 @@ function renderSettings(){var tm=0,ts=0;state.modules.forEach(function(m){tm++;t
     else sub.style.display='none';
   }
   if(!(state.isSub||state.isPub) && subMg) renderSubManage();
+  var themeSel = document.getElementById('defaultThemeSel');
+  if(themeSel){
+    fetch(org()+'/api/settings').then(function(r){ return r.json(); }).catch(function(){ return {}; }).then(function(s){
+      if(s && s.defaultTheme && themeSel.value !== s.defaultTheme) themeSel.value = s.defaultTheme;
+    });
+  }
+}
+
+function saveDefaultTheme(){
+  var sel = document.getElementById('defaultThemeSel');
+  if(!sel) return;
+  api('/api/settings',{method:'PUT',json:{defaultTheme:sel.value}}).then(function(r){
+    if(r&&r.ok){ toast('默认主题已保存'); } else toast('保存失败');
+  });
 }
 
 function subInfoHtml(){
@@ -679,27 +717,47 @@ async function setSubQuota(id){
   if(r&&r.ok){ toast('已更新'); loadSubList(); } else toast(r&&r.error?r.error:'更新失败');
 }
 
-function toggleTheme(){
+function updatePosterWall(){
+  var g1 = document.getElementById('posterGrid1');
+  var g2 = document.getElementById('posterGrid2');
+  if(!g1 || !g2) return;
+  var base = 'https://raw.githubusercontent.com/MakkaPakka518/TUBIAO/refs/heads/main/normal/';
+  var posters = [];
+  for(var i=1;i<=30;i++) posters.push(base+i+'.webp');
+  posters.sort(function(){ return 0.5 - Math.random(); });
+  var list = posters.slice();
+  while(list.length < 60) list = list.concat(posters);
+  var html = '';
+  for(var j=0;j<list.length;j++) html += '<img src="'+list[j]+'" class="poster-img" loading="lazy" draggable="false" alt="Poster">';
+  g1.innerHTML = html;
+  g2.innerHTML = html;
+}
+
+function applyTheme(t){
   var root = document.documentElement;
-  if (root.classList.contains('dark')) {
-    root.classList.remove('dark'); root.classList.add('light');
-    localStorage.setItem('fwh_theme', 'light');
-  } else if (root.classList.contains('light')) {
-    root.classList.remove('light');
-    localStorage.setItem('fwh_theme', 'auto');
-  } else {
-    root.classList.add('dark');
-    localStorage.setItem('fwh_theme', 'dark');
-  }
+  root.classList.remove('dark','light','poster');
+  if(t === 'dark') root.classList.add('dark');
+  else if(t === 'light') root.classList.add('light');
+  else if(t === 'poster'){ root.classList.add('poster'); updatePosterWall(); }
+  localStorage.setItem('fwh_theme', t);
   updateThemeIcon();
+}
+
+function toggleTheme(){
+  var cur = localStorage.getItem('fwh_theme') || 'auto';
+  var order = ['auto','light','dark','poster'];
+  var idx = order.indexOf(cur);
+  if(idx < 0) idx = 0;
+  applyTheme(order[(idx+1) % order.length]);
 }
 
 function updateThemeIcon(){
   var el = document.getElementById('themeIcon');
-  if (!btn) return;
+  if(!el) return;
   var root = document.documentElement;
-  if (root.classList.contains('dark')) el.innerHTML = I.moon;
-  else if (root.classList.contains('light')) el.innerHTML = I.sun;
+  if(root.classList.contains('dark')) el.innerHTML = I.moon;
+  else if(root.classList.contains('light')) el.innerHTML = I.sun;
+  else if(root.classList.contains('poster')) el.innerHTML = I.poster;
   else el.innerHTML = I.sunmoon;
 }
 
@@ -821,7 +879,25 @@ function showPrompt(title, def, cb) {
   document.getElementById('mC').addEventListener('click',function(){cl(document.getElementById('promptInput').value);});
 }
 
-(function(){var v=localStorage.getItem('fwh_theme');if(v==='dark')document.documentElement.classList.add('dark');else if(v==='light')document.documentElement.classList.add('light');else if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.classList.add('dark');})();
+(function(){
+  var v = localStorage.getItem('fwh_theme');
+  if(v==='dark') document.documentElement.classList.add('dark');
+  else if(v==='light') document.documentElement.classList.add('light');
+  else if(v==='poster'){ document.documentElement.classList.add('poster'); updatePosterWall(); }
+  else if(window.matchMedia('(prefers-color-scheme:dark)').matches) document.documentElement.classList.add('dark');
+  // 管理员设置的访客默认主题（仅对未手动选择过主题的用户生效）
+  if(!v){
+    fetch(org()+'/api/settings').then(function(r){ return r.json(); }).catch(function(){ return {}; }).then(function(s){
+      var t = s && s.defaultTheme;
+      if(!t || t === 'auto') return;
+      var root = document.documentElement;
+      root.classList.remove('dark','light','poster');
+      if(t==='dark') root.classList.add('dark');
+      else if(t==='light') root.classList.add('light');
+      else if(t==='poster'){ root.classList.add('poster'); updatePosterWall(); }
+    });
+  }
+})();
 
 (function(){
   var link = document.getElementById('faviconLink');
@@ -945,6 +1021,24 @@ export default {
         }
         await clearLoginFails(clientIp);
         return json({ ok: true }, 200, { 'Set-Cookie': 'fwh_pub='+hash+'; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=86400' });
+      }
+    }
+
+    
+    if (path === '/api/settings') {
+      const getSt = async () => { try { const raw = await env.REX_KV.get('settings'); return raw ? JSON.parse(raw) : {}; } catch(e){ return {}; } };
+      if (method === 'GET') {
+        const st = await getSt();
+        return json({ defaultTheme: st.defaultTheme || 'auto' });
+      }
+      if (method === 'PUT') {
+        if (!verifyAuth(request)) return json({ error: 'Unauthorized' }, 401);
+        const body = await request.json().catch(()=>({}));
+        const t = ['auto','light','dark','poster'].indexOf(body.defaultTheme) >= 0 ? body.defaultTheme : 'auto';
+        const st = await getSt();
+        st.defaultTheme = t;
+        await env.REX_KV.put('settings', JSON.stringify(st));
+        return json({ ok: true, defaultTheme: t });
       }
     }
 
