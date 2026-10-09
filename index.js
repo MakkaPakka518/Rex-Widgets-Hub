@@ -15,7 +15,7 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .header{padding:14px 18px 6px;position:relative;z-index:10;background:var(--bg);flex-shrink:0}
 .header h1{font-size:34px;font-weight:700;letter-spacing:-0.5px}
 .header p{font-size:14px;color:var(--text2);margin-top:2px}
-.page{display:none;position:fixed;left:14px;right:14px;top:98px;max-height:calc(100vh - 216px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px;background:var(--card);border:1px solid transparent;border-radius:22px;box-shadow:none}
+.page{display:none;position:fixed;left:14px;right:14px;top:98px;max-height:calc(100vh - 216px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:12px 12px 34px;background:var(--card);border:1px solid transparent;border-radius:22px;box-shadow:none}
 .page.active{display:block}
 .card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sep)}
@@ -308,7 +308,7 @@ function renderMods(){
       ((state.isSub||state.isPub)?'':'<button onclick="promptDeleteMod(\''+m.id+'\')" class="danger">'+I.trash+'删除</button>')+'</div></div></div>';
   });
   h+='</div>';
-  if(ms.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="toggleModExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+ms.length+' 个模块')+'</button>';
+  if(ms.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:12px;padding:12px 0;min-height:44px" onclick="toggleModExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+ms.length+' 个模块')+'</button>';
   document.getElementById('modulesList').innerHTML=h;
 }
 
@@ -495,7 +495,7 @@ function renderCols(){
       '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
       '<div style="margin-top:10px">'+(state.isPub?'':'<button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button>')+'</div></div>';
   });
-  if(cs.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="toggleColExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+cs.length+' 个合集')+'</button>';
+  if(cs.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:12px;padding:12px 0;min-height:44px" onclick="toggleColExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+cs.length+' 个合集')+'</button>';
   document.getElementById('collectionsList').innerHTML=h;
 }
 
