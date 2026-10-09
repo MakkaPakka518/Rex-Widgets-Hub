@@ -166,7 +166,8 @@ var I = {
   moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
   sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   sunmoon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
-  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>'
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
 };
 var state = { modules: [], collections: [], tab: 'modules', modReplaceId: null, isAuthed: false, isSub: false, isPub: false, subInfo: null };
 
@@ -435,7 +436,7 @@ function renderCols(){
     h+='<div class="card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">';
     if(c.icon_url) h+='<img src="'+esc(c.icon_url)+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover" onerror="this.remove()">';
     h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+n+' 个模块'+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
-      '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
+      '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
       '<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button></div></div>';
   });
   document.getElementById('collectionsList').innerHTML=h;
@@ -490,6 +491,20 @@ function showAddCol(){
   var items = document.querySelectorAll('.pick-item');
   for(var i=0;i<items.length;i++) items[i].addEventListener('click', refreshBtn);
   refreshBtn();
+}
+
+function showColModules(id){
+  var col = state.collections.find(function(c){ return c.id===id; });
+  if(!col) return;
+  var ids = col.moduleIds || [];
+  if(!ids.length){ toast('该合集暂无模块'); return; }
+  var rows = '';
+  ids.forEach(function(mid, i){
+    var m = state.modules.find(function(x){ return x.id===mid; });
+    var name = m && m.title ? m.title : '未命名模块';
+    rows += '<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;background:var(--card);border:1px solid var(--sep);font-size:13px"><span style="width:22px;flex-shrink:0;color:var(--text3);font-size:12px">'+(i+1)+'</span><span style="flex:1;min-width:0">'+esc(name)+'</span></div>';
+  });
+  showModal('合集模块 — '+esc(col.title), '<div style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto">'+rows+'</div><p style="font-size:12px;color:var(--text3);margin:10px 0 0">共 '+ids.length+' 个模块</p>', function(close){ close(); });
 }
 
 function showEditCol(id){
