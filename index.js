@@ -117,7 +117,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 <body>
 
 <div id="loginGate" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:80vh">
-<div style="text-align:center"><img src="https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/REX.png" alt="REX" style="width:72px;height:72px;margin:0 auto 14px;border-radius:18px;object-fit:cover;display:block;box-shadow:0 6px 20px rgba(0,0,0,0.15)"><h2 style="font-size:22px;font-weight:700">Widgets For Rex</h2><p style="color:#8E8E93;font-size:14px;margin:6px 0 18px">请输入密码</p><p style="color:#B0B0B5;font-size:12px;margin:0 0 22px">管理员或订阅者密码均可登录</p><input type="password" id="pwInput" class="input" style="max-width:280px;text-align:center" placeholder="密码" onkeydown="if(event.key==='Enter')login()"><button class="btn btn-primary" style="width:100%;max-width:280px;margin-top:10px;padding:12px" onclick="login()">登录</button><p id="loginErr" style="color:#FF3B30;font-size:13px;margin-top:10px;display:none"></p></div></div>
+<div style="text-align:center"><img src="https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/REX.png" alt="REX" style="width:72px;height:72px;margin:0 auto 14px;border-radius:18px;object-fit:cover;display:block;box-shadow:0 6px 20px rgba(0,0,0,0.15)"><h2 style="font-size:22px;font-weight:700">Widgets For Rex</h2><p style="color:#8E8E93;font-size:14px;margin:6px 0 18px">请输入密码</p><p style="color:#B0B0B5;font-size:12px;margin:0 0 22px">管理员、订阅者或公共密码均可登录</p><input type="password" id="pwInput" class="input" style="max-width:280px;text-align:center" placeholder="密码" onkeydown="if(event.key==='Enter')login()"><button class="btn btn-primary" style="width:100%;max-width:280px;margin-top:10px;padding:12px" onclick="login()">登录</button><p id="loginErr" style="color:#FF3B30;font-size:13px;margin-top:10px;display:none"></p></div></div>
 
 <div id="appMain" style="display:none">
 <div class="header"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="display:flex;align-items:center;gap:10px"><img src="" id="headerIcon" style="width:28px;height:28px;border-radius:7px;object-fit:cover;display:none" onerror="this.style.display='none'"><div><h1 id="pageTitle">模块</h1><p id="pageSub">独立模块管理</p></div></div><button class="btn-xs" id="btnThemeToggle" onclick="toggleTheme()" style="margin-top:4px" title="切换主题"><span class="icon-link" id="themeIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></span></button></div></div>
@@ -168,7 +168,7 @@ var I = {
   sunmoon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
   shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>'
 };
-var state = { modules: [], collections: [], tab: 'modules', modReplaceId: null, isAuthed: false, isSub: false, subInfo: null };
+var state = { modules: [], collections: [], tab: 'modules', modReplaceId: null, isAuthed: false, isSub: false, isPub: false, subInfo: null };
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function fmt(b){ return b<1024?b+' B':(b/1024).toFixed(1)+' KB'; }
@@ -182,7 +182,7 @@ async function api(path, opts){
   if(opts.body) fo.body = opts.body;
   var r = await fetch(path, fo);
   if(r.status===401){
-    if(path==='/api/admin/auth'||path==='/api/auth/subscriber'){ state.isAuthed=false; showLogin(); return null; }
+    if(path==='/api/admin/auth'||path==='/api/auth/subscriber'||path==='/api/auth/public'){ state.isAuthed=false; showLogin(); return null; }
     toast('无权限或登录失效'); return null;
   }
   if(r.status===204) return {ok:true};
@@ -194,18 +194,22 @@ function showApp(){
   document.getElementById('loginGate').style.display='none';
   document.getElementById('appMain').style.display='block';
   var bar=document.getElementById('modAdminBar');
-  if(bar) bar.style.display = state.isSub ? 'none' : 'flex';
+  if(bar) bar.style.display = (state.isSub||state.isPub) ? 'none' : 'flex';
   loadAll();
 }
 
 async function checkAuth(){
   var r = await api('/api/admin/auth');
   if(!r){ showLogin(); return; }
-  if(r.authenticated){ state.isAuthed=true; state.isSub=false; showApp(); }
+  if(r.authenticated){ state.isAuthed=true; state.isSub=false; state.isPub=false; showApp(); }
   else {
     var r2 = await api('/api/auth/subscriber');
-    if(r2 && r2.authenticated){ state.isAuthed=true; state.isSub=true; state.subInfo=r2; showApp(); }
-    else showLogin();
+    if(r2 && r2.authenticated){ state.isAuthed=true; state.isSub=true; state.isPub=false; state.subInfo=r2; showApp(); }
+    else {
+      var r3 = await api('/api/auth/public');
+      if(r3 && r3.authenticated){ state.isAuthed=true; state.isSub=false; state.isPub=true; showApp(); }
+      else showLogin();
+    }
   }
 }
 
@@ -215,7 +219,9 @@ async function login(){
   var r = await api('/api/admin/auth', {method:'POST',json:{password:pw}});
   if(r&&r.ok){ state.isAuthed=true; state.isSub=false; showApp(); document.getElementById('pwInput').value=''; return; }
   var r2 = await api('/api/auth/subscriber', {method:'POST',json:{password:pw}});
-  if(r2&&r2.ok){ state.isAuthed=true; state.isSub=true; state.subInfo=r2; showApp(); document.getElementById('pwInput').value=''; return; }
+  if(r2&&r2.ok){ state.isAuthed=true; state.isSub=true; state.isPub=false; state.subInfo=r2; showApp(); document.getElementById('pwInput').value=''; return; }
+  var r3 = await api('/api/auth/public', {method:'POST',json:{password:pw}});
+  if(r3&&r3.ok){ state.isAuthed=true; state.isSub=false; state.isPub=true; showApp(); document.getElementById('pwInput').value=''; return; }
   var e=document.getElementById('loginErr'); e.style.display='block'; e.textContent='密码错误';
 }
 
@@ -236,7 +242,7 @@ function switchTab(tab){
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   var pg = document.getElementById('page-'+tab); if(pg) pg.classList.add('active');
   document.querySelectorAll('.dock-item').forEach(function(el){ el.classList.toggle('active',el.dataset.tab===tab); });
-  var titles=state.isSub
+  var titles=(state.isSub||state.isPub)
     ? {modules:['模块','只读模块池'],collections:['合集','挑选模块组成订阅'],settings:['设置','订阅信息']}
     : {modules:['模块','独立模块管理'],collections:['合集','挑选模块组成订阅'],settings:['设置','系统信息']};
   document.getElementById('pageTitle').textContent=titles[tab][0];
@@ -260,11 +266,11 @@ function renderMods(){
       '<div class="menu-wrap"><button class="btn-xs" onclick="toggleMenu(event,\''+m.id+'\')">'+I.dots+'</button>'+
       '<div class="menu-drop" id="menu-'+m.id+'" style="display:none">'+
       '<button onclick="copyModLink(\''+m.id+'\')">'+I.copy+'复制链接</button>'+
-      (state.isSub?'':'<button onclick="editMeta(\''+m.id+'\')">'+I.edit+'编辑信息</button>')+
-      (state.isSub?'':'<button onclick="promptReplace(\''+m.id+'\')">'+I.docup+'替换文件</button>')+
-      (state.isSub?'':(m.is_encrypted?'':'<button onclick="openEditor(\''+m.id+'\')">'+I.code+'在线编辑</button>'))+
-      (state.isSub?'':(m.source_url?'<button onclick="refreshMod(\''+m.id+'\')">'+I.refresh+'刷新</button>':''))+
-      (state.isSub?'':'<button onclick="promptDeleteMod(\''+m.id+'\')" class="danger">'+I.trash+'删除</button>')+'</div></div></div>';
+      ((state.isSub||state.isPub)?'':'<button onclick="editMeta(\''+m.id+'\')">'+I.edit+'编辑信息</button>')+
+      ((state.isSub||state.isPub)?'':'<button onclick="promptReplace(\''+m.id+'\')">'+I.docup+'替换文件</button>')+
+      ((state.isSub||state.isPub)?'':(m.is_encrypted?'':'<button onclick="openEditor(\''+m.id+'\')">'+I.code+'在线编辑</button>'))+
+      ((state.isSub||state.isPub)?'':(m.source_url?'<button onclick="refreshMod(\''+m.id+'\')">'+I.refresh+'刷新</button>':''))+
+      ((state.isSub||state.isPub)?'':'<button onclick="promptDeleteMod(\''+m.id+'\')" class="danger">'+I.trash+'删除</button>')+'</div></div></div>';
   });
   h+='</div>';
   document.getElementById('modulesList').innerHTML=h;
@@ -420,7 +426,7 @@ function promptDeleteMod(id){
 
 function renderCols(){
   var cs = state.collections;
-  var warn = state.isSub ? '<div style="font-size:12px;color:#FF9500;background:rgba(255,149,0,0.12);border-radius:10px;padding:8px 10px;margin-bottom:10px">订阅者剩余可生成合集 '+((state.subInfo&&state.subInfo.remaining!=null)?state.subInfo.remaining:'-')+' 次 · 名称仅限数字或英文</div>' : '';
+  var warn = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;background:rgba(255,149,0,0.12);border-radius:10px;padding:8px 10px;margin-bottom:10px">'+(state.isPub?'公共用户 · 可无限生成合集':'订阅者剩余可生成合集 '+((state.subInfo&&state.subInfo.remaining!=null)?state.subInfo.remaining:'-')+' 次')+' · 名称仅限数字或英文</div>' : '';
   document.getElementById('colCount').textContent='共 '+cs.length+' 个合集';
   if(!cs.length){ document.getElementById('collectionsList').innerHTML=warn+'<div class="empty"><div class="ico">'+I.box+'</div><p>暂无合集</p></div>'; return; }
   var h=warn;
@@ -436,15 +442,15 @@ function renderCols(){
 }
 
 function showAddCol(){
-  var quotaNote = state.isSub ? '<div style="font-size:12px;color:#FF9500;margin:0 0 8px">剩余可生成 '+(state.subInfo&&state.subInfo.remaining!=null?state.subInfo.remaining:'-')+' 次 · 名称仅限数字或英文</div>' : '';
+  var quotaNote = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;margin:0 0 8px">'+(state.isPub?'公共用户可无限生成':'剩余可生成 '+(state.subInfo&&state.subInfo.remaining!=null?state.subInfo.remaining:'-')+' 次')+' · 名称仅限数字或英文</div>' : '';
   showModal('新建合集',
-    quotaNote+'<label>标题</label><input class="input" id="colTitle" placeholder="合集名称'+(state.isSub?'（仅数字或英文）':'')+'">'+
+    quotaNote+'<label>标题</label><input class="input" id="colTitle" placeholder="合集名称'+((state.isSub||state.isPub)?'（仅数字或英文）':'')+'">'+
     '<label>描述</label><input class="input" id="colDesc" placeholder="可选">'+
     '<label>图标 URL</label><input class="input" id="colIcon" placeholder="可选，https://...">',
     function(close){
       var title=document.getElementById('colTitle').value;
       if(!title.trim()){ toast('请输入标题'); return; }
-      if(state.isSub && !/^[A-Za-z0-9]+$/.test(title.trim())){ toast('合集名称只能为数字或英文'); return; }
+      if((state.isSub||state.isPub) && !/^[A-Za-z0-9]+$/.test(title.trim())){ toast('合集名称只能为数字或英文'); return; }
       api('/api/admin/collections',{method:'POST',json:{title:title.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim()}}).then(function(r){
         if(r&&r.ok){ state.collections.push({id:r.id,slug:r.slug,title:title.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim(),moduleIds:[],created_at:Date.now(),updated_at:Date.now()}); toast('合集已创建'); close(); loadAll(); } else toast(r&&r.error?r.error:'创建失败');
       });
@@ -461,7 +467,7 @@ function showEditCol(id){
     function(close){
       var title=document.getElementById('colTitle').value;
       if(!title.trim()){ toast('请输入标题'); return; }
-      if(state.isSub && !/^[A-Za-z0-9]+$/.test(title.trim())){ toast('合集名称只能为数字或英文'); return; }
+      if((state.isSub||state.isPub) && !/^[A-Za-z0-9]+$/.test(title.trim())){ toast('合集名称只能为数字或英文'); return; }
       api('/api/admin/collections',{method:'PATCH',json:{id:id,title:title.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim()}}).then(function(r){
         if(r&&r.ok){ toast('已更新'); close(); loadAll(); } else toast('更新失败');
       });
@@ -510,16 +516,21 @@ function renderSettings(){var tm=0,ts=0;state.modules.forEach(function(m){tm++;t
   var adm=document.getElementById('settingsAdminCards');
   var sub=document.getElementById('settingsSubInfo');
   var subMg=document.getElementById('subManageCard');
-  if(adm) adm.style.display = state.isSub ? 'none' : 'block';
-  if(subMg) subMg.style.display = state.isSub ? 'none' : 'block';
+  if(adm) adm.style.display = (state.isSub||state.isPub) ? 'none' : 'block';
+  if(subMg) subMg.style.display = (state.isSub||state.isPub) ? 'none' : 'block';
   if(sub){
-    if(state.isSub){ sub.style.display='block'; sub.innerHTML=subInfoHtml(); }
+    if(state.isSub||state.isPub){ sub.style.display='block'; sub.innerHTML=subInfoHtml(); }
     else sub.style.display='none';
   }
-  if(!state.isSub && subMg) renderSubManage();
+  if(!(state.isSub||state.isPub) && subMg) renderSubManage();
 }
 
 function subInfoHtml(){
+  if(state.isPub){
+    return '<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">公共用户信息</div>'+
+      '<p style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">当前模式：公共用户<br>可生成合集次数：不限（无限次）</p>'+
+      '<p style="font-size:12px;color:#FF9500;line-height:1.7;margin:10px 0 0">公共用户模式为只读：不能上传或管理模块，只能挑选面板内的模块创建合集；合集名称仅限数字或英文。</p></div>';
+  }
   var si = state.subInfo || {};
   return '<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">订阅信息</div>'+
     '<p style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">当前模式：订阅者<br>可生成合集次数：剩余 '+(si.remaining!=null?si.remaining:'-')+' 次（上限 '+(si.quota!=null?si.quota:'-')+' 次）</p>'+
@@ -760,10 +771,15 @@ export default {
 
     
     const ADMIN_HASH = (await env.REX_KV.get('admin_password')) || (env.ADMIN_SECRET ? await sha256(env.ADMIN_SECRET) : '');
+    const PUBLIC_HASH = env.PUBLIC_SECRET ? await sha256(env.PUBLIC_SECRET) : '';
     const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
     function verifyAuth(r) {
       const c = (r.headers.get('Cookie')||'').match(/fwh_admin=([^;]+)/);
       return !!ADMIN_HASH && !!c && safeEqual(c[1], ADMIN_HASH);
+    }
+    function verifyPublicAuth(r) {
+      const c = (r.headers.get('Cookie')||'').match(/fwh_pub=([^;]+)/);
+      return !!PUBLIC_HASH && !!c && safeEqual(c[1], PUBLIC_HASH);
     }
     async function findSubscriber(req) {
       const c = (req.headers.get('Cookie')||'').match(/fwh_sub=([^;]+)/);
@@ -822,6 +838,23 @@ export default {
         if (!sub) { await addLoginFail(clientIp); return json({ error: 'wrong password' }, 401); }
         await clearLoginFails(clientIp);
         return json({ ok: true, quota: sub.quota, used: sub.used, remaining: Math.max(0,(sub.quota||0)-(sub.used||0)) }, 200, { 'Set-Cookie': 'fwh_sub='+sub.id+'; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=86400' });
+      }
+    }
+
+    
+    if (path === '/api/auth/public') {
+      if (method === 'GET') return json({ enabled: !!PUBLIC_HASH, authenticated: verifyPublicAuth(request) });
+      if (method === 'POST') {
+        if (!PUBLIC_HASH) return json({ error: 'server not configured' }, 503);
+        if (await loginLocked(clientIp)) return json({ error: 'too many attempts, try again later' }, 429);
+        const { password } = await request.json().catch(()=>({}));
+        const hash = password ? await sha256(password) : '';
+        if (!hash || !safeEqual(hash, PUBLIC_HASH)) {
+          await addLoginFail(clientIp);
+          return json({ error: 'wrong password' }, 401);
+        }
+        await clearLoginFails(clientIp);
+        return json({ ok: true }, 200, { 'Set-Cookie': 'fwh_pub='+hash+'; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=86400' });
       }
     }
 
@@ -1137,9 +1170,10 @@ export default {
     if (path === '/api/admin/collections') {
       const admin = verifyAuth(request);
       const sub = await findSubscriber(request);
-      if (!admin && !sub) return json({ error: 'Unauthorized' }, 401);
+      const pub = verifyPublicAuth(request);
+      if (!admin && !sub && !pub) return json({ error: 'Unauthorized' }, 401);
       const cols = await getCollections();
-      const subTag = sub ? 'sub:'+sub.id : '';
+      const subTag = sub ? 'sub:'+sub.id : (pub ? 'pub' : '');
       if (method === 'GET') {
         const list = admin ? cols : cols.filter(c => c.owner === subTag);
         return json(list);
@@ -1148,8 +1182,9 @@ export default {
         const body = await request.json().catch(()=>({}));
         const title = (body.title||'').trim();
         if (!title) return json({ error: 'title required' }, 400);
-        if (sub && !/^[A-Za-z0-9]+$/.test(title)) return json({ error: '合集名称只能为数字或英文' }, 400);
+        if ((sub || pub) && !/^[A-Za-z0-9]+$/.test(title)) return json({ error: '合集名称只能为数字或英文' }, 400);
         if (sub && (sub.used||0) >= (sub.quota||0)) return json({ error: '已达生成次数上限，剩余 0 次' }, 403);
+        // 公共用户组（PUBLIC_SECRET）不限生成次数
         const now = Date.now();
         const colId = genId();
         let slug = pinyinSlug(title) || 'col-'+now;
@@ -1158,7 +1193,7 @@ export default {
           id: colId, slug, title: title,
           description: body.description || '', icon_url: body.icon_url || '',
           moduleIds: body.moduleIds || [],
-          owner: sub ? subTag : 'admin',
+          owner: sub ? subTag : (pub ? 'pub' : 'admin'),
           created_at: now, updated_at: now
         };
         cols.push(col);
@@ -1174,10 +1209,10 @@ export default {
         const body = await request.json().catch(()=>({}));
         const col = cols.find(c => c.id === body.id);
         if (!col) return json({ error: 'Not found' }, 404);
-        if (sub && col.owner !== subTag) return json({ error: 'Forbidden' }, 403);
+        if ((sub || pub) && col.owner !== subTag) return json({ error: 'Forbidden' }, 403);
         if (body.title !== undefined) {
           const t = String(body.title).trim();
-          if (sub && !/^[A-Za-z0-9]+$/.test(t)) return json({ error: '合集名称只能为数字或英文' }, 400);
+          if ((sub || pub) && !/^[A-Za-z0-9]+$/.test(t)) return json({ error: '合集名称只能为数字或英文' }, 400);
           col.title = t;
         }
         if (body.description !== undefined) col.description = body.description;
