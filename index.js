@@ -15,8 +15,10 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .header{padding:14px 18px 6px;position:relative;z-index:10;background:var(--bg);flex-shrink:0}
 .header h1{font-size:34px;font-weight:700;letter-spacing:-0.5px}
 .header p{font-size:14px;color:var(--text2);margin-top:2px}
-.page{display:none;position:fixed;left:14px;right:14px;top:98px;max-height:calc(100vh - 216px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:12px 12px 34px;background:var(--card);border:1px solid transparent;border-radius:22px;box-shadow:none}
-.page.active{display:block}
+.page{display:none;position:fixed;left:14px;right:14px;top:98px;max-height:calc(100vh - 216px);flex-direction:column;overflow:hidden;padding:12px 12px 0;background:var(--card);border:1px solid transparent;border-radius:22px;box-shadow:none}
+.page.active{display:flex}
+.page-fixed{flex:none}
+.page-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:0 0 16px}
 .card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sep)}
 .row:last-child{border-bottom:none}
@@ -149,14 +151,16 @@ input,textarea{user-select:text;-webkit-user-select:text}
 <div class="header"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="display:flex;align-items:center;gap:10px"><img src="" id="headerIcon" style="width:28px;height:28px;border-radius:7px;object-fit:cover;display:none" onerror="this.style.display='none'"><div><h1 id="pageTitle">模块</h1><p id="pageSub">独立模块管理</p></div></div><button class="btn-xs" id="btnThemeToggle" onclick="toggleTheme()" style="margin-top:4px" title="切换主题"><span class="icon-link" id="themeIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></span></button></div></div>
 
 <div id="page-modules" class="page">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-size:13px;color:var(--text2)" id="modCount">0 个模块</span><div id="modAdminBar" style="display:flex;gap:6px"><button class="btn btn-primary btn-sm" onclick="showNewMod()">+ 新建模块</button><label class="btn btn-primary btn-sm" style="position:relative;overflow:hidden;cursor:pointer">+ 上传模块<input type="file" multiple accept=".js,application/javascript,text/javascript" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.01" onchange="doUploadMods(this)"></label><button class="btn btn-ghost btn-sm" onclick="showImportUrl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4.93"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07L13 19.07"/></svg>链接添加</button></div></div>
-<div id="modulesList"></div></div>
+<div class="page-fixed"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:13px;color:var(--text2)" id="modCount">0 个模块</span><div id="modAdminBar" style="display:flex;gap:6px"><button class="btn btn-primary btn-sm" onclick="showNewMod()">+ 新建模块</button><label class="btn btn-primary btn-sm" style="position:relative;overflow:hidden;cursor:pointer">+ 上传模块<input type="file" multiple accept=".js,application/javascript,text/javascript" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.01" onchange="doUploadMods(this)"></label><button class="btn btn-ghost btn-sm" onclick="showImportUrl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4.93"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07L13 19.07"/></svg>链接添加</button></div></div><div id="modExpandBar" style="display:none;margin-bottom:10px"></div></div>
+<div id="modulesList" class="page-scroll"></div></div>
 
 <div id="page-collections" class="page">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span id="colCount" style="font-size:13px;color:var(--text2)"></span><button class="btn btn-primary btn-sm" onclick="showAddCol()">+ 新建合集</button></div>
-<div id="collectionsList"></div></div>
+<div class="page-fixed"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span id="colCount" style="font-size:13px;color:var(--text2)"></span><button class="btn btn-primary btn-sm" onclick="showAddCol()">+ 新建合集</button></div><div id="colExpandBar" style="display:none;margin-bottom:10px"></div></div>
+<div id="collectionsList" class="page-scroll"></div></div>
 
 <div id="page-settings" class="page">
+<div class="page-fixed"></div>
+<div class="page-scroll">
 <div id="settingsSubInfo" style="display:none"></div>
 <div id="subManageCard" style="display:none"></div>
 <div id="settingsAdminCards">
@@ -164,7 +168,7 @@ input,textarea{user-select:text;-webkit-user-select:text}
 <div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">备份与恢复</div><button class="btn" style="width:100%;margin-top:4px" onclick="exportData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>备份（全部模块+合集）</button><button class="btn" style="width:100%;margin-top:4px" onclick="importBackup()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>恢复（上传备份文件）</button><button class="btn" style="width:100%;margin-top:4px;color:var(--red)" onclick="clearAllData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>清除所有数据</button></div>
 <div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">密码</div><div style="display:flex;gap:8px;margin-top:4px"><input type="password" id="pwdNew" class="input" placeholder="新密码" style="flex:1"><button class="btn btn-primary" style="flex-shrink:0;padding:10px 14px" onclick="changePassword()">修改</button></div></div>
 <div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">访客默认主题</div><select id="defaultThemeSel" style="width:100%;border:1.5px solid var(--sep);border-radius:14px;padding:12px 14px;font-size:15px;outline:none;background:var(--card);color:var(--text);font-family:inherit"><option value="auto">跟随系统（黑色/白色）</option><option value="light">白色</option><option value="dark">黑色</option><option value="poster">海报墙</option></select><button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="saveDefaultTheme()">保存默认主题</button><p style="font-size:12px;color:var(--text2);margin:8px 0 0">仅对未手动选择过主题的访客生效（用户自己切换过则保留其选择）</p></div>
-<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">关于</div><p style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">总占用空间：<span id="statSizeText" style="font-weight:600;color:var(--text)">0 B</span><br>与我交流：<a href="https://t.me/MakkaPakkaOvO" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;text-decoration:none">MakkaPakka</a></p></div></div></div></div>
+<div class="card"><div style="font-size:16px;font-weight:600;margin-bottom:6px">关于</div><p style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">总占用空间：<span id="statSizeText" style="font-weight:600;color:var(--text)">0 B</span><br>与我交流：<a href="https://t.me/MakkaPakkaOvO" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;text-decoration:none">MakkaPakka</a></p></div></div></div></div></div>
 
 <div class="dock">
 <button class="dock-item active" data-tab="modules" onclick="switchTab('modules')"><span class="d-icon"><svg viewBox="0 0 28 28"><rect x="3" y="3" width="9" height="9" rx="3"/><rect x="16" y="3" width="9" height="9" rx="3"/><rect x="3" y="16" width="9" height="9" rx="3"/><rect x="16" y="16" width="9" height="9" rx="3"/></svg></span><span class="d-label">模块</span></button>
@@ -288,7 +292,7 @@ function renderMods(){
     return (b.created_at||0) - (a.created_at||0);
   });
   document.getElementById('modCount').textContent = ms.length + ' 个模块';
-  if(!ms.length){ document.getElementById('modulesList').innerHTML='<div class="empty"><div class="ico">'+I.box+'</div><p>暂无模块</p></div>'; return; }
+  if(!ms.length){ document.getElementById('modulesList').innerHTML='<div class="empty"><div class="ico">'+I.box+'</div><p>暂无模块</p></div>'; document.getElementById('modExpandBar').style.display='none'; return; }
   var expanded = !!state.modExpanded;
   var shown = expanded ? ms : ms.slice(0,1);
   var h='<div class="card" style="padding-bottom:6px">';
@@ -308,8 +312,10 @@ function renderMods(){
       ((state.isSub||state.isPub)?'':'<button onclick="promptDeleteMod(\''+m.id+'\')" class="danger">'+I.trash+'删除</button>')+'</div></div></div>';
   });
   h+='</div>';
-  if(ms.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:12px;padding:12px 0;min-height:44px" onclick="toggleModExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+ms.length+' 个模块')+'</button>';
   document.getElementById('modulesList').innerHTML=h;
+  var eb=document.getElementById('modExpandBar');
+  if(ms.length > 1){ eb.style.display='block'; eb.innerHTML='<button class="btn btn-ghost" style="width:100%;padding:10px 0;min-height:44px" onclick="toggleModExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+ms.length+' 个模块')+'</button>'; }
+  else eb.style.display='none';
 }
 
 function toggleModExpand(){ state.modExpanded = !state.modExpanded; renderMods(); }
@@ -482,7 +488,7 @@ function renderCols(){
   var cs = state.collections;
   var warn = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;background:rgba(255,149,0,0.12);border-radius:10px;padding:8px 10px;margin-bottom:10px">'+(state.isPub?'公共用户 · 可无限生成合集 · 标题/描述/图标为固定模板，不可修改':'订阅者剩余可生成合集 '+((state.subInfo&&state.subInfo.remaining!=null)?state.subInfo.remaining:'-')+' 次 · 名称仅限数字或英文')+'</div>' : '';
   document.getElementById('colCount').textContent='共 '+cs.length+' 个合集';
-  if(!cs.length){ document.getElementById('collectionsList').innerHTML=warn+'<div class="empty"><div class="ico">'+I.box+'</div><p>暂无合集</p></div>'; return; }
+  if(!cs.length){ document.getElementById('collectionsList').innerHTML=warn+'<div class="empty"><div class="ico">'+I.box+'</div><p>暂无合集</p></div>'; document.getElementById('colExpandBar').style.display='none'; return; }
   var expanded = !!state.colExpanded;
   var shown = expanded ? cs : cs.slice(0,1);
   var h=warn;
@@ -495,8 +501,10 @@ function renderCols(){
       '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
       '<div style="margin-top:10px">'+(state.isPub?'':'<button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button>')+'</div></div>';
   });
-  if(cs.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:12px;padding:12px 0;min-height:44px" onclick="toggleColExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+cs.length+' 个合集')+'</button>';
   document.getElementById('collectionsList').innerHTML=h;
+  var eb=document.getElementById('colExpandBar');
+  if(cs.length > 1){ eb.style.display='block'; eb.innerHTML='<button class="btn btn-ghost" style="width:100%;padding:10px 0;min-height:44px" onclick="toggleColExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+cs.length+' 个合集')+'</button>'; }
+  else eb.style.display='none';
 }
 
 function toggleColExpand(){ state.colExpanded = !state.colExpanded; renderCols(); }
