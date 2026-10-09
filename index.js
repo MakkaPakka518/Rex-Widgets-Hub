@@ -8,13 +8,14 @@ var HTML = String.raw`<!DOCTYPE html>
 <style>
 :root{--bg:#F2F2F7;--card:#FFF;--accent:#007AFF;--text:#1C1C1E;--text2:#8E8E93;--text3:#C7C7CC;--sep:rgba(60,60,67,0.12);--red:#FF3B30;--green:#34C759;--radius:20px;--dock-bg:rgba(248,248,248,0.72)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y;overscroll-behavior:none}
+html{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;background:var(--bg);color:var(--text);height:100%;position:fixed;width:100%;top:0;left:0;overflow:hidden;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y;overscroll-behavior:none}
 img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
 input,textarea{user-select:text;-webkit-user-select:text}
-.header{padding:16px 20px 4px;position:sticky;top:0;z-index:10;background:var(--bg)}
+.header{padding:14px 18px 6px;position:relative;z-index:10;background:var(--bg);flex-shrink:0}
 .header h1{font-size:34px;font-weight:700;letter-spacing:-0.5px}
 .header p{font-size:14px;color:var(--text2);margin-top:2px}
-.page{display:none;padding:8px 16px 160px}
+.page{display:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:8px 14px 96px;padding:14px;background:var(--card);border:1px solid var(--sep);border-radius:22px;box-shadow:0 6px 28px rgba(0,0,0,0.08)}
 .page.active{display:block}
 .card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sep)}
@@ -141,10 +142,10 @@ input,textarea{user-select:text;-webkit-user-select:text}
 <div id="posterWallWrapper"><div id="posterWallRotate"><div id="posterWallMover"><div id="posterGrid1" class="poster-grid"></div><div id="posterGrid2" class="poster-grid"></div></div></div></div>
 
 
-<div id="loginGate" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:80vh">
+<div id="loginGate" style="display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:0">
 <div style="text-align:center"><img src="https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/REX.png" alt="REX" style="width:72px;height:72px;margin:0 auto 14px;border-radius:18px;object-fit:cover;display:block;box-shadow:0 6px 20px rgba(0,0,0,0.15)"><h2 style="font-size:22px;font-weight:700">Widgets For Rex</h2><p style="color:#8E8E93;font-size:14px;margin:6px 0 18px">请输入密码</p><p style="color:#B0B0B5;font-size:12px;margin:0 0 22px">管理员、订阅者或公共密码均可登录</p><input type="password" id="pwInput" class="input" style="max-width:280px;text-align:center" placeholder="密码" onkeydown="if(event.key==='Enter')login()"><button class="btn btn-primary" style="width:100%;max-width:280px;margin-top:10px;padding:12px" onclick="login()">登录</button><p id="loginErr" style="color:#FF3B30;font-size:13px;margin-top:10px;display:none"></p></div></div>
 
-<div id="appMain" style="display:none">
+<div id="appMain" style="display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden">
 <div class="header"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="display:flex;align-items:center;gap:10px"><img src="" id="headerIcon" style="width:28px;height:28px;border-radius:7px;object-fit:cover;display:none" onerror="this.style.display='none'"><div><h1 id="pageTitle">模块</h1><p id="pageSub">独立模块管理</p></div></div><button class="btn-xs" id="btnThemeToggle" onclick="toggleTheme()" style="margin-top:4px" title="切换主题"><span class="icon-link" id="themeIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></span></button></div></div>
 
 <div id="page-modules" class="page">
@@ -220,7 +221,7 @@ async function api(path, opts){
 function showLogin(){ document.getElementById('loginGate').style.display='flex'; document.getElementById('appMain').style.display='none'; state.isAuthed=false; }
 function showApp(){
   document.getElementById('loginGate').style.display='none';
-  document.getElementById('appMain').style.display='block';
+  document.getElementById('appMain').style.display='flex';
   var bar=document.getElementById('modAdminBar');
   if(bar) bar.style.display = (state.isSub||state.isPub) ? 'none' : 'flex';
   loadAll();
