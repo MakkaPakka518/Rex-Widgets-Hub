@@ -493,7 +493,7 @@ function promptDeleteMod(id){
 }
 
 function renderCols(){
-  var cs = state.collections;
+  var cs = state.collections.slice().sort(function(a,b){ return ((b.official?1:0)-(a.official?1:0)) || ((b.created_at||0)-(a.created_at||0)); });
   var warn = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;background:rgba(255,149,0,0.12);border-radius:10px;padding:8px 10px;margin-bottom:10px">'+(state.isPub?'公共用户 · 可无限生成合集 · 标题/描述/图标为固定模板，不可修改':'订阅者剩余可生成合集 '+((state.subInfo&&state.subInfo.remaining!=null)?state.subInfo.remaining:'-')+' 次 · 名称仅限数字或英文')+'</div>' : '';
   document.getElementById('colCount').textContent='共 '+cs.length+' 个合集';
   if(!cs.length){ document.getElementById('collectionsList').innerHTML=warn+'<div class="empty"><div class="ico">'+I.box+'</div><p>暂无合集</p></div>'; document.getElementById('colExpandBar').style.display='none'; return; }
@@ -503,11 +503,12 @@ function renderCols(){
   shown.forEach(function(c){
     var n = (c.moduleIds||[]).length;
     var cntText = c.autoAll ? '全部模块 · 自动更新' : n+' 个模块';
+    var locked = (state.isSub||state.isPub) && c.official;
     h+='<div class="card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">';
     if(c.icon_url) h+='<img src="'+esc(c.icon_url)+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover" onerror="this.remove()">';
-    h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+cntText+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
-      '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
-      '<div style="margin-top:10px">'+(state.isPub?'':'<button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button>')+'</div></div>';
+    h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+(c.official?'<span class="badge badge-green" style="margin-left:6px">官方</span>':'')+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+cntText+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
+      '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+((locked||state.isPub)?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+((locked)?'':'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button>')+'</div></div>'+
+      '<div style="margin-top:10px">'+((locked||state.isPub)?'':'<button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button>')+'</div></div>';
   });
   document.getElementById('collectionsList').innerHTML=h;
   var eb=document.getElementById('colExpandBar');
@@ -621,12 +622,15 @@ function showEditCol(id){
   showModal('编辑合集',
     '<label>标题</label><input class="input" id="colTitle" value="'+esc(col.title)+'">'+
     '<label>描述</label><input class="input" id="colDesc" value="'+esc(col.description||'')+'">'+
-    '<label>图标 URL</label><input class="input" id="colIcon" value="'+esc(col.icon_url||'')+'">',
+    '<label>图标 URL</label><input class="input" id="colIcon" value="'+esc(col.icon_url||'')+'">'+
+    (state.isSub?'':'<label style="display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="colOfficial" '+(col.official?'checked':'')+' style="width:18px;height:18px;flex-shrink:0"> 官方合集（所有用户可见 · 列表置顶 · 仅管理员可编辑）</label>'),
     function(close){
       var title=document.getElementById('colTitle').value;
       if(!title.trim()){ toast('请输入标题'); return; }
       if((state.isSub||state.isPub) && !/^[A-Za-z0-9]+$/.test(title.trim())){ toast('合集名称只能为数字或英文'); return; }
-      api('/api/admin/collections',{method:'PATCH',json:{id:id,title:title.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim()}}).then(function(r){
+      var payload={id:id,title:title.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim()};
+      if(!state.isSub && !state.isPub){ var of=document.getElementById('colOfficial'); if(of) payload.official=of.checked; }
+      api('/api/admin/collections',{method:'PATCH',json:payload}).then(function(r){
         if(r&&r.ok){ toast('已更新'); close(); loadAll(); } else toast('更新失败');
       });
     });
@@ -1143,9 +1147,8 @@ export default {
     if (path === '/api/admin/modules') {
       const mods = await getModules();
       if (method === 'GET') {
-        var isAdmin = verifyAuth(request);
-        if (!isAdmin && !(await findSubscriber(request)) && !verifyPublicAuth(request)) return json({ error: 'Unauthorized' }, 401);
-        return json(isAdmin ? mods : mods.filter(function(m){ return m.official; }));
+        if (!verifyAuth(request) && !(await findSubscriber(request)) && !verifyPublicAuth(request)) return json({ error: 'Unauthorized' }, 401);
+        return json(mods);
       }
       if (!verifyAuth(request)) return json({ error: 'Unauthorized' }, 401);
       if (method === 'POST') {
@@ -1453,7 +1456,7 @@ export default {
       const cols = await getCollections();
       const subTag = sub ? 'sub:'+sub.id : (pub ? 'pub' : '');
       if (method === 'GET') {
-        const list = admin ? cols : cols.filter(c => c.owner === subTag);
+        const list = admin ? cols : cols.filter(c => c.owner === subTag || c.official);
         return json(list);
       }
       if (method === 'POST') {
@@ -1493,6 +1496,7 @@ export default {
           description: description, icon_url: icon_url,
           moduleIds: moduleIds,
           autoAll: autoAll || false,
+          official: !!admin && body.official === true,
           owner: sub ? subTag : (pub ? 'pub' : 'admin'),
           created_at: now, updated_at: now
         };
@@ -1509,6 +1513,7 @@ export default {
         const body = await request.json().catch(()=>({}));
         const col = cols.find(c => c.id === body.id);
         if (!col) return json({ error: 'Not found' }, 404);
+        if ((sub || pub) && col.official) return json({ error: '官方合集仅管理员可修改' }, 403);
         if ((sub || pub) && col.owner !== subTag) return json({ error: 'Forbidden' }, 403);
         if (pub && (body.title !== undefined || body.description !== undefined || body.icon_url !== undefined)) {
           return json({ error: '公共用户合集标题/描述/图标为固定模板，不可修改' }, 403);
@@ -1531,6 +1536,10 @@ export default {
             col.moduleIds = (Array.isArray(body.moduleIds) && body.moduleIds.length) ? body.moduleIds : allMods.map(m => m.id);
           }
         }
+        if (body.official !== undefined) {
+          if (!admin) return json({ error: '仅管理员可设置官方合集' }, 403);
+          col.official = body.official === true;
+        }
         col.updated_at = Date.now();
         await saveCollections(cols);
         return json({ ok: true });
@@ -1539,6 +1548,7 @@ export default {
         const id = url.searchParams.get('id');
         const col = cols.find(c => c.id === id);
         if (!col) return json({ error: 'Not found' }, 404);
+        if ((sub || pub) && col.official) return json({ error: '官方合集仅管理员可删除' }, 403);
         if (sub && col.owner !== subTag) return json({ error: 'Forbidden' }, 403);
         cols.splice(cols.indexOf(col), 1);
         await saveCollections(cols);
