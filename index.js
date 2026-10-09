@@ -52,7 +52,7 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .poster-img{width:100%;height:auto;border-radius:8px;opacity:0.8;transition:opacity .3s;box-shadow:0 4px 8px -2px rgba(0,0,0,.6);object-fit:cover;aspect-ratio:2/3;-webkit-user-drag:none}
 
 
-@media(prefers-color-scheme:dark){:root:not(.dark):not(.light){--bg:#000;--card:#1C1C1E;--accent:#0A84FF;--text:#FFF;--text2:#98989D;--text3:#636366;--sep:rgba(84,84,88,0.65);--dock-bg:rgba(28,28,30,0.72)}:root:not(.dark):not(.light) .modal-overlay{background:rgba(0,0,0,0.6)}:root:not(.dark):not(.light) .modal h3,:root:not(.dark):not(.light) .modal p{color:#fff}}
+@media(prefers-color-scheme:dark){:root:not(.dark):not(.light):not(.poster){--bg:#000;--card:#1C1C1E;--accent:#0A84FF;--text:#FFF;--text2:#98989D;--text3:#636366;--sep:rgba(84,84,88,0.65);--dock-bg:rgba(28,28,30,0.72)}:root:not(.dark):not(.light):not(.poster) .modal-overlay{background:rgba(0,0,0,0.6)}:root:not(.dark):not(.light):not(.poster) .modal h3,:root:not(.dark):not(.light):not(.poster) .modal p{color:#fff}}
 .btn-xs{width:32px;height:32px;border-radius:9px;border:none;background:transparent;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0}
 .btn-xs:hover{background:rgba(0,0,0,0.05);color:var(--text)}
 .btn-xs.danger:hover{background:rgba(255,59,48,0.1);color:var(--red)}
