@@ -435,31 +435,70 @@ function renderCols(){
     h+='<div class="card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">';
     if(c.icon_url) h+='<img src="'+esc(c.icon_url)+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover" onerror="this.remove()">';
     h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+n+' 个模块'+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
-      '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button><button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
+      '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
       '<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button></div></div>';
   });
   document.getElementById('collectionsList').innerHTML=h;
 }
 
+function buildPickList(selectedIds){
+  var body='<div class="pick-list" style="max-height:260px;overflow-y:auto">';
+  if(!state.modules.length){ body='<p style="font-size:13px;color:var(--text3);margin:0;padding:10px 0">暂无可选模块，请先上传模块</p></div>'; return body; }
+  state.modules.forEach(function(m){
+    var ck = (selectedIds||[]).indexOf(m.id)>=0 ? ' checked' : '';
+    body+='<div class="pick-item'+ck+'" data-mid="'+m.id+'" onclick="togglePick(this)"><span style="flex:1">'+esc(m.title||m.filename)+'</span><span style="font-size:11px;color:var(--text3)">'+fmt(m.file_size)+'</span></div>';
+  });
+  return body+'</div>';
+}
+
 function showAddCol(){
   var quotaNote = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;margin:0 0 8px">'+(state.isPub?'公共用户可无限生成':'剩余可生成 '+(state.subInfo&&state.subInfo.remaining!=null?state.subInfo.remaining:'-')+' 次')+' · 名称仅限数字或英文</div>' : '';
-  showModal('新建合集',
-    quotaNote+'<label>标题</label><input class="input" id="colTitle" placeholder="合集名称'+((state.isSub||state.isPub)?'（仅数字或英文）':'')+'">'+
-    '<label>描述</label><input class="input" id="colDesc" placeholder="可选">'+
-    '<label>图标 URL</label><input class="input" id="colIcon" placeholder="可选，https://...">',
-    function(close){
-      var title=document.getElementById('colTitle').value;
-      if(!title.trim()){ toast('请输入标题'); return; }
-      if((state.isSub||state.isPub) && !/^[A-Za-z0-9]+$/.test(title.trim())){ toast('合集名称只能为数字或英文'); return; }
-      api('/api/admin/collections',{method:'POST',json:{title:title.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim()}}).then(function(r){
-        if(r&&r.ok){ state.collections.push({id:r.id,slug:r.slug,title:title.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim(),moduleIds:[],created_at:Date.now(),updated_at:Date.now()}); toast('合集已创建'); close(); loadAll(); } else toast(r&&r.error?r.error:'创建失败');
-      });
+  var body;
+  if(state.isPub){
+    var pubDesc = '在网站：' + location.hostname + ' 自选的玛卡巴卡的模块合集';
+    body = quotaNote+
+      '<div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><img src="https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/Rex-Makka.JPEG" style="width:36px;height:36px;border-radius:10px;object-fit:cover" onerror="this.remove()"><div style="font-size:16px;font-weight:600">玛卡巴卡的自选模块</div></div>'+
+        '<div style="font-size:13px;color:var(--text2);line-height:1.7">'+esc(pubDesc)+'</div>'+
+        '<div style="font-size:12px;color:var(--text3);margin-top:6px">标题 / 描述 / 图标为固定模板，不可更改</div>'+
+      '</div>'+
+      '<label>选择模块（必须至少选择 1 个才能创建）</label>'+buildPickList([]);
+  } else {
+    body = quotaNote+
+      '<label>标题</label><input class="input" id="colTitle" placeholder="合集名称'+(state.isSub?'（仅数字或英文）':'')+'">'+
+      '<label>描述</label><input class="input" id="colDesc" placeholder="可选">'+
+      '<label>图标 URL</label><input class="input" id="colIcon" placeholder="可选，https://...">'+
+      '<label>选择模块（必须至少选择 1 个才能创建）</label>'+buildPickList([]);
+  }
+  showModal('新建合集', body, function(close){
+    var picked = [];
+    document.querySelectorAll('.pick-item.checked').forEach(function(el){ picked.push(el.dataset.mid); });
+    if(!picked.length){ toast('请至少选择一个模块'); return; }
+    var payload = state.isPub ? {moduleIds:picked} : {title:document.getElementById('colTitle').value.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim(),moduleIds:picked};
+    if(!state.isPub && !payload.title){ toast('请输入标题'); return; }
+    if(state.isSub && !/^[A-Za-z0-9]+$/.test(payload.title)){ toast('合集名称只能为数字或英文'); return; }
+    api('/api/admin/collections',{method:'POST',json:payload}).then(function(r){
+      if(r&&r.ok){
+        if(state.isPub && r.exists){ toast('该模块组合已存在，为你跳转到已有合集'); close(); loadAll().then(function(){ showPickMods(r.id); }); }
+        else { toast('合集已创建'); close(); loadAll(); }
+      } else toast(r&&r.error?r.error:'创建失败');
     });
+  });
+  // 未选择任何模块时确认按钮不可点击
+  var mC = document.getElementById('mC');
+  function refreshBtn(){ var any = document.querySelectorAll('.pick-item.checked').length>0; mC.disabled = !any; mC.style.opacity = any?'1':'0.5'; }
+  var items = document.querySelectorAll('.pick-item');
+  for(var i=0;i<items.length;i++) items[i].addEventListener('click', refreshBtn);
+  refreshBtn();
 }
 
 function showEditCol(id){
   var col = state.collections.find(function(c){ return c.id===id; });
   if(!col) return;
+  if(state.isPub){
+    showModal('合集信息', '<div style="font-size:13px;color:var(--text2);line-height:1.9;margin:0">标题 / 描述 / 图标为固定模板，不可更改。<br>如需调整模块，请点击合集卡片上的「从模块池挑选」。</div>', function(close){ close(); });
+    return;
+  }
   showModal('编辑合集',
     '<label>标题</label><input class="input" id="colTitle" value="'+esc(col.title)+'">'+
     '<label>描述</label><input class="input" id="colDesc" value="'+esc(col.description||'')+'">'+
@@ -1180,19 +1219,35 @@ export default {
       }
       if (method === 'POST') {
         const body = await request.json().catch(()=>({}));
-        const title = (body.title||'').trim();
-        if (!title) return json({ error: 'title required' }, 400);
-        if ((sub || pub) && !/^[A-Za-z0-9]+$/.test(title)) return json({ error: '合集名称只能为数字或英文' }, 400);
-        if (sub && (sub.used||0) >= (sub.quota||0)) return json({ error: '已达生成次数上限，剩余 0 次' }, 403);
-        // 公共用户组（PUBLIC_SECRET）不限生成次数
+        const moduleIds = Array.isArray(body.moduleIds) ? body.moduleIds.filter(function(x){ return typeof x === 'string' && x; }) : [];
+        if (moduleIds.length === 0) return json({ error: '请至少选择一个模块' }, 400);
         const now = Date.now();
+        let title, description, icon_url;
+        if (pub) {
+          // 公共用户组：固定模板（标题/描述/图标不可更改）
+          title = '玛卡巴卡的自选模块';
+          const host = (request.headers.get('Host')||'').split(':')[0];
+          description = '在网站：' + host + ' 自选的玛卡巴卡的模块合集';
+          icon_url = 'https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/tubiao/Rex-Makka.JPEG';
+          // 模块集合去重（不论顺序）：已有相同组合的公共合集则直接复用
+          const sig = moduleIds.slice().sort().join(',');
+          const dup = cols.find(c => c.owner === 'pub' && c.moduleIds && c.moduleIds.slice().sort().join(',') === sig);
+          if (dup) return json({ ok: true, exists: true, id: dup.id, slug: dup.slug }, 200);
+        } else {
+          title = (body.title||'').trim();
+          if (!title) return json({ error: 'title required' }, 400);
+          if (sub && !/^[A-Za-z0-9]+$/.test(title)) return json({ error: '合集名称只能为数字或英文' }, 400);
+          description = body.description || '';
+          icon_url = body.icon_url || '';
+        }
+        if (sub && (sub.used||0) >= (sub.quota||0)) return json({ error: '已达生成次数上限，剩余 0 次' }, 403);
         const colId = genId();
         let slug = pinyinSlug(title) || 'col-'+now;
         if (cols.some(c => c.slug === slug)) slug = slug + '-' + colId.slice(0,8);
         const col = {
           id: colId, slug, title: title,
-          description: body.description || '', icon_url: body.icon_url || '',
-          moduleIds: body.moduleIds || [],
+          description: description, icon_url: icon_url,
+          moduleIds: moduleIds,
           owner: sub ? subTag : (pub ? 'pub' : 'admin'),
           created_at: now, updated_at: now
         };
@@ -1210,6 +1265,9 @@ export default {
         const col = cols.find(c => c.id === body.id);
         if (!col) return json({ error: 'Not found' }, 404);
         if ((sub || pub) && col.owner !== subTag) return json({ error: 'Forbidden' }, 403);
+        if (pub && (body.title !== undefined || body.description !== undefined || body.icon_url !== undefined)) {
+          return json({ error: '公共用户合集标题/描述/图标为固定模板，不可修改' }, 403);
+        }
         if (body.title !== undefined) {
           const t = String(body.title).trim();
           if ((sub || pub) && !/^[A-Za-z0-9]+$/.test(t)) return json({ error: '合集名称只能为数字或英文' }, 400);
