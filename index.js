@@ -289,8 +289,10 @@ function renderMods(){
   });
   document.getElementById('modCount').textContent = ms.length + ' 个模块';
   if(!ms.length){ document.getElementById('modulesList').innerHTML='<div class="empty"><div class="ico">'+I.box+'</div><p>暂无模块</p></div>'; return; }
+  var expanded = !!state.modExpanded;
+  var shown = expanded ? ms : ms.slice(0,1);
   var h='<div class="card" style="padding-bottom:6px">';
-  ms.forEach(function(m){
+  shown.forEach(function(m){
     var ib=m.is_encrypted?'rgba(255,149,0,0.1)':'rgba(0,122,255,0.06)';
     var ie=m.is_encrypted?I.lock:I.doc;
     h+='<div class="row"><div class="ico-sq" style="background:'+ib+'">'+ie+'</div><div class="info"><div class="name">'+esc(m.title||m.filename)+(m.official?'<span class="badge badge-green" style="margin-left:6px">官方</span>':'')+'</div><div class="sub">'+esc(m.filename)+' · '+fmt(m.file_size)+(m.note?'<br>'+esc(m.note):'')+'</div></div>'+
@@ -306,8 +308,11 @@ function renderMods(){
       ((state.isSub||state.isPub)?'':'<button onclick="promptDeleteMod(\''+m.id+'\')" class="danger">'+I.trash+'删除</button>')+'</div></div></div>';
   });
   h+='</div>';
+  if(ms.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="toggleModExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+ms.length+' 个模块')+'</button>';
   document.getElementById('modulesList').innerHTML=h;
 }
+
+function toggleModExpand(){ state.modExpanded = !state.modExpanded; renderMods(); }
 
 function showNewMod(){
   showModal('新建官方模块',
@@ -478,8 +483,10 @@ function renderCols(){
   var warn = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;background:rgba(255,149,0,0.12);border-radius:10px;padding:8px 10px;margin-bottom:10px">'+(state.isPub?'公共用户 · 可无限生成合集 · 标题/描述/图标为固定模板，不可修改':'订阅者剩余可生成合集 '+((state.subInfo&&state.subInfo.remaining!=null)?state.subInfo.remaining:'-')+' 次 · 名称仅限数字或英文')+'</div>' : '';
   document.getElementById('colCount').textContent='共 '+cs.length+' 个合集';
   if(!cs.length){ document.getElementById('collectionsList').innerHTML=warn+'<div class="empty"><div class="ico">'+I.box+'</div><p>暂无合集</p></div>'; return; }
+  var expanded = !!state.colExpanded;
+  var shown = expanded ? cs : cs.slice(0,1);
   var h=warn;
-  cs.forEach(function(c){
+  shown.forEach(function(c){
     var n = (c.moduleIds||[]).length;
     var cntText = c.autoAll ? '全部模块 · 自动更新' : n+' 个模块';
     h+='<div class="card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">';
@@ -488,8 +495,11 @@ function renderCols(){
       '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
       '<div style="margin-top:10px">'+(state.isPub?'':'<button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button>')+'</div></div>';
   });
+  if(cs.length > 1) h+='<button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="toggleColExpand()">'+(expanded?'▲ 收起':'▼ 展开全部 '+cs.length+' 个合集')+'</button>';
   document.getElementById('collectionsList').innerHTML=h;
 }
+
+function toggleColExpand(){ state.colExpanded = !state.colExpanded; renderCols(); }
 
 function buildPickList(selectedIds){
   var body='<div class="pick-list" style="max-height:260px;overflow-y:auto">';
