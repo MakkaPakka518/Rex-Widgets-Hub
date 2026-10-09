@@ -23,6 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .sub{font-size:12px;color:var(--text3);margin-top:2px}
 .badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;flex-shrink:0}
 .badge-blue{background:rgba(0,122,255,0.1);color:var(--accent)}
+.badge-green{background:rgba(52,199,89,0.14);color:#34C759}
 .ico-sq>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .menu-wrap{position:relative;flex-shrink:0}
 .menu-drop{position:absolute;right:0;top:100%;margin-top:4px;background:var(--card);border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:6px;min-width:150px;z-index:200;animation:fadeUp 0.15s ease}
@@ -147,7 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 <div class="header"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="display:flex;align-items:center;gap:10px"><img src="" id="headerIcon" style="width:28px;height:28px;border-radius:7px;object-fit:cover;display:none" onerror="this.style.display='none'"><div><h1 id="pageTitle">模块</h1><p id="pageSub">独立模块管理</p></div></div><button class="btn-xs" id="btnThemeToggle" onclick="toggleTheme()" style="margin-top:4px" title="切换主题"><span class="icon-link" id="themeIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/><path d="M21 12.8A8 8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></span></button></div></div>
 
 <div id="page-modules" class="page">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-size:13px;color:var(--text2)" id="modCount">0 个模块</span><div id="modAdminBar" style="display:flex;gap:6px"><label class="btn btn-primary btn-sm" style="position:relative;overflow:hidden;cursor:pointer">+ 上传模块<input type="file" multiple accept=".js,application/javascript,text/javascript" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.01" onchange="doUploadMods(this)"></label><button class="btn btn-ghost btn-sm" onclick="showImportUrl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4.93"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07L13 19.07"/></svg>链接添加</button></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-size:13px;color:var(--text2)" id="modCount">0 个模块</span><div id="modAdminBar" style="display:flex;gap:6px"><button class="btn btn-primary btn-sm" onclick="showNewMod()">+ 新建模块</button><label class="btn btn-primary btn-sm" style="position:relative;overflow:hidden;cursor:pointer">+ 上传模块<input type="file" multiple accept=".js,application/javascript,text/javascript" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.01" onchange="doUploadMods(this)"></label><button class="btn btn-ghost btn-sm" onclick="showImportUrl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4.93"/><path d="M14 11a5 5 0 0 0-7.07 0l-2.83 2.83a5 5 0 0 0 7.07 7.07L13 19.07"/></svg>链接添加</button></div></div>
 <div id="modulesList"></div></div>
 
 <div id="page-collections" class="page">
@@ -280,14 +281,18 @@ function switchTab(tab){
 }
 
 function renderMods(){
-  var ms = state.modules;
+  var ms = state.modules.slice().sort(function(a,b){
+    var oa = a.official ? 0 : 1, ob = b.official ? 0 : 1;
+    if(oa !== ob) return oa - ob;
+    return (b.created_at||0) - (a.created_at||0);
+  });
   document.getElementById('modCount').textContent = ms.length + ' 个模块';
   if(!ms.length){ document.getElementById('modulesList').innerHTML='<div class="empty"><div class="ico">'+I.box+'</div><p>暂无模块</p></div>'; return; }
   var h='<div class="card" style="padding-bottom:6px">';
   ms.forEach(function(m){
     var ib=m.is_encrypted?'rgba(255,149,0,0.1)':'rgba(0,122,255,0.06)';
     var ie=m.is_encrypted?I.lock:I.doc;
-    h+='<div class="row"><div class="ico-sq" style="background:'+ib+'">'+ie+'</div><div class="info"><div class="name">'+esc(m.title||m.filename)+'</div><div class="sub">'+esc(m.filename)+' · '+fmt(m.file_size)+(m.note?'<br>'+esc(m.note):'')+'</div></div>'+
+    h+='<div class="row"><div class="ico-sq" style="background:'+ib+'">'+ie+'</div><div class="info"><div class="name">'+esc(m.title||m.filename)+(m.official?'<span class="badge badge-green" style="margin-left:6px">官方</span>':'')+'</div><div class="sub">'+esc(m.filename)+' · '+fmt(m.file_size)+(m.note?'<br>'+esc(m.note):'')+'</div></div>'+
       (m.version?'<span class="badge badge-blue">'+esc(m.version)+'</span>':'')+
       '<button class="rex-add" onclick="addToRexMod(\''+m.id+'\')" title="一键添加到Rex">'+I.plus+'Rex</button>'+
       '<div class="menu-wrap"><button class="btn-xs" onclick="toggleMenu(event,\''+m.id+'\')">'+I.dots+'</button>'+
@@ -301,6 +306,22 @@ function renderMods(){
   });
   h+='</div>';
   document.getElementById('modulesList').innerHTML=h;
+}
+
+function showNewMod(){
+  showModal('新建官方模块',
+    '<label>模块名称</label><input class="input" id="newModTitle" placeholder="例如：天气组件">'+
+    '<label>模块代码（JS）</label><textarea class="input" id="newModCode" style="min-height:160px;font-family:monospace;font-size:13px;resize:vertical" placeholder="在此粘贴模块代码..."></textarea>'+
+    '<p style="font-size:12px;color:var(--text2);margin:8px 0 0">官方模块对所有用户（管理员/订阅者/公共用户）可见可用，不可编辑，展示在模块列表最前面。</p>',
+    function(close){
+      var title=document.getElementById('newModTitle').value;
+      var code=document.getElementById('newModCode').value;
+      if(!title.trim()){ toast('请输入模块名称'); return; }
+      if(!code.trim()){ toast('请输入模块代码'); return; }
+      api('/api/admin/modules',{method:'POST',json:{title:title,code:code}}).then(function(r){
+        if(r&&r.ok){ toast('官方模块已创建'); close(); loadAll(); } else toast('创建失败');
+      });
+    });
 }
 
 async function doUploadMods(input){
@@ -1093,6 +1114,26 @@ export default {
       }
       if (!verifyAuth(request)) return json({ error: 'Unauthorized' }, 401);
       if (method === 'POST') {
+        const ct = request.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const body = await request.json().catch(()=>({}));
+          const title = String(body.title || '').trim();
+          const code = String(body.code || '');
+          if (!title) return json({ error: '请输入模块名称' }, 400);
+          if (!code.trim()) return json({ error: '请输入模块代码' }, 400);
+          const now = Date.now();
+          const id = genId();
+          const buf = new TextEncoder().encode(code);
+          const mod = { id: id, widget_id: id, filename: title.replace(/[^\w\u4e00-\u9fa5.\-]+/g, '_') + '.js', title: title, version: '', author: '', note: '', file_size: buf.byteLength, is_encrypted: false, official: true, created_at: now, updated_at: now };
+          mods.push(mod);
+          await env.REX_KV.put('file:' + id, buf);
+          await saveModules(mods);
+          const acols = await getCollections();
+          let achanged = false;
+          acols.forEach(c => { if (c.autoAll && Array.isArray(c.moduleIds) && c.moduleIds.indexOf(id) < 0) { c.moduleIds.push(id); c.updated_at = now; achanged = true; } });
+          if (achanged) await saveCollections(acols);
+          return json({ ok: true, id: id }, 201);
+        }
         const fd = await request.formData();
         const files = fd.getAll('files');
         const now = Date.now(); const added = []; const updated = [];
