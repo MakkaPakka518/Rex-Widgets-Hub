@@ -305,6 +305,7 @@ function renderMods(){
       '<div class="menu-wrap"><button class="btn-xs" onclick="toggleMenu(event,\''+m.id+'\')">'+I.dots+'</button>'+
       '<div class="menu-drop" id="menu-'+m.id+'" style="display:none">'+
       '<button onclick="copyModLink(\''+m.id+'\')">'+I.copy+'复制链接</button>'+
+      ((state.isSub||state.isPub)?'':(m.official?'<button onclick="setOfficial(\''+m.id+'\',false)" class="danger">'+I.shield+'取消官方（仅自己可见）</button>':'<button onclick="setOfficial(\''+m.id+'\',true)">'+I.shield+'设为官方（全员可见·置顶）</button>'))+
       ((state.isSub||state.isPub)?'':'<button onclick="editMeta(\''+m.id+'\')">'+I.edit+'编辑信息</button>')+
       ((state.isSub||state.isPub)?'':'<button onclick="promptReplace(\''+m.id+'\')">'+I.docup+'替换文件</button>')+
       ((state.isSub||state.isPub)?'':(m.is_encrypted?'':'<button onclick="openEditor(\''+m.id+'\')">'+I.code+'在线编辑</button>'))+
@@ -320,18 +321,25 @@ function renderMods(){
 
 function toggleModExpand(){ state.modExpanded = !state.modExpanded; renderMods(); }
 
+async function setOfficial(id, v){
+  var r = await api('/api/admin/modules?id='+id, {method:'PATCH', json:{official:v}});
+  if(r && r.ok){ toast(v?'已设为官方模块：所有用户可见并置顶':'已取消官方：恢复为仅自己可见'); loadAll(); }
+  else toast('操作失败');
+}
+
 function showNewMod(){
-  showModal('新建官方模块',
+  showModal('新建模块',
     '<label>模块名称</label><input class="input" id="newModTitle" placeholder="例如：天气组件">'+
     '<label>模块代码（JS）</label><textarea class="input" id="newModCode" style="min-height:160px;font-family:monospace;font-size:13px;resize:vertical" placeholder="在此粘贴模块代码..."></textarea>'+
-    '<p style="font-size:12px;color:var(--text2);margin:8px 0 0">官方模块对所有用户（管理员/订阅者/公共用户）可见可用，不可编辑，展示在模块列表最前面。</p>',
+    '<label style="display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="newModOfficial" checked style="width:18px;height:18px;flex-shrink:0"> 设为官方模块（所有用户可见 · 列表置顶）</label>'+
+    '<p style="font-size:12px;color:var(--text2);margin:6px 0 0">勾选后所有用户（管理员/订阅者/公共用户）都能看到并使用，不可编辑，展示在模块列表最前面；取消勾选则创建仅自己可见的普通模块。</p>',
     function(close){
       var title=document.getElementById('newModTitle').value;
       var code=document.getElementById('newModCode').value;
       if(!title.trim()){ toast('请输入模块名称'); return; }
       if(!code.trim()){ toast('请输入模块代码'); return; }
-      api('/api/admin/modules',{method:'POST',json:{title:title,code:code}}).then(function(r){
-        if(r&&r.ok){ toast('官方模块已创建'); close(); loadAll(); } else toast('创建失败');
+      api('/api/admin/modules',{method:'POST',json:{title:title,code:code,official:document.getElementById('newModOfficial').checked}}).then(function(r){
+        if(r&&r.ok){ toast('模块已创建'); close(); loadAll(); } else toast('创建失败');
       });
     });
 }
@@ -1135,8 +1143,9 @@ export default {
     if (path === '/api/admin/modules') {
       const mods = await getModules();
       if (method === 'GET') {
-        if (!verifyAuth(request) && !(await findSubscriber(request)) && !verifyPublicAuth(request)) return json({ error: 'Unauthorized' }, 401);
-        return json(mods);
+        var isAdmin = verifyAuth(request);
+        if (!isAdmin && !(await findSubscriber(request)) && !verifyPublicAuth(request)) return json({ error: 'Unauthorized' }, 401);
+        return json(isAdmin ? mods : mods.filter(function(m){ return m.official; }));
       }
       if (!verifyAuth(request)) return json({ error: 'Unauthorized' }, 401);
       if (method === 'POST') {
@@ -1150,7 +1159,7 @@ export default {
           const now = Date.now();
           const id = genId();
           const buf = new TextEncoder().encode(code);
-          const mod = { id: id, widget_id: id, filename: title.replace(/[^\w\u4e00-\u9fa5.\-]+/g, '_') + '.js', title: title, version: '', author: '', note: '', file_size: buf.byteLength, is_encrypted: false, official: true, created_at: now, updated_at: now };
+          const mod = { id: id, widget_id: id, filename: title.replace(/[^\w\u4e00-\u9fa5.\-]+/g, '_') + '.js', title: title, version: '', author: '', note: '', file_size: buf.byteLength, is_encrypted: false, official: body.official !== false, created_at: now, updated_at: now };
           mods.push(mod);
           await env.REX_KV.put('file:' + id, buf);
           await saveModules(mods);
@@ -1233,6 +1242,7 @@ export default {
         if (body.version !== undefined) mod.version = body.version;
         if (body.author !== undefined) mod.author = body.author;
         if (body.note !== undefined) mod.note = body.note;
+        if (body.official !== undefined) mod.official = !!body.official;
         mod.updated_at = Date.now();
         await saveModules(mods);
         return json({ ok: true });
