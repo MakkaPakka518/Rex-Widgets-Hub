@@ -80,6 +80,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;ba
 .pick-item{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--sep)}
 .pick-item:last-child{border:none}
 .pick-item.checked{background:rgba(0,122,255,0.06)}
+.all-pick{border:1px dashed var(--accent);background:rgba(0,122,255,0.04)}
+.all-pick.checked{border-style:solid;background:rgba(0,122,255,0.10)}
 .stat-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .stat{background:var(--bg);border-radius:16px;padding:16px;text-align:center}
 .stat .num{font-size:32px;font-weight:700}
@@ -433,9 +435,10 @@ function renderCols(){
   var h=warn;
   cs.forEach(function(c){
     var n = (c.moduleIds||[]).length;
+    var cntText = c.autoAll ? '全部模块 · 自动更新' : n+' 个模块';
     h+='<div class="card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">';
     if(c.icon_url) h+='<img src="'+esc(c.icon_url)+'" style="width:40px;height:40px;border-radius:12px;object-fit:cover" onerror="this.remove()">';
-    h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+n+' 个模块'+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
+    h+='<div style="min-width:0"><div style="font-size:16px;font-weight:600">'+esc(c.title)+'</div><div style="font-size:12px;color:var(--text2);margin-top:3px">'+cntText+(c.description?' · '+esc(c.description):'')+'</div></div></div>'+
       '<div style="display:flex;gap:2px"><button class="rex-add" onclick="addToRexCol(\''+c.slug+'\')" title="一键添加到Rex">'+I.plus+'Rex</button><button class="btn-xs" onclick="copyText(\''+org()+'/api/collections/'+c.slug+'.rex\')" title="复制订阅链接">'+I.copy+'</button><button class="btn-xs" onclick="showColModules(\''+c.id+'\')" title="查看合集包含的模块">'+I.eye+'</button>'+(state.isPub?'':'<button class="btn-xs" onclick="showEditCol(\''+c.id+'\')">'+I.edit+'</button>')+'<button class="btn-xs danger" onclick="promptDeleteCol(\''+c.id+'\')">'+I.trash+'</button></div></div>'+
       '<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="showPickMods(\''+c.id+'\')">+ 从模块池挑选</button></div></div>';
   });
@@ -452,6 +455,32 @@ function buildPickList(selectedIds){
   return body+'</div>';
 }
 
+function buildAllPickRow(isAll){
+  return '<div id="allPickRow" class="pick-item all-pick'+(isAll?' checked':'')+'" onclick="toggleAllPick()"><span style="flex:1;font-weight:600">选择全部模块</span><span style="font-size:11px;color:var(--accent)">'+(isAll?'已开启':'开启后自动加入全部模块')+'</span></div>'+
+    '<p id="allPickTip" style="font-size:12px;color:#FF9500;margin:6px 0 0;'+(isAll?'':'display:none')+'">已选择全部模块：之后管理者新上传的模块也会自动加入此合集。</p>';
+}
+function toggleAllPick(){
+  var row = document.getElementById('allPickRow');
+  if(!row) return;
+  var on = row.classList.toggle('checked');
+  document.querySelectorAll('.pick-item[data-mid]').forEach(function(el){ el.classList.toggle('checked', on); });
+  syncAllPickState();
+}
+function syncAllPickState(){
+  var row = document.getElementById('allPickRow');
+  if(!row) return;
+  var items = document.querySelectorAll('.pick-item[data-mid]');
+  var on = items.length>0;
+  items.forEach(function(x){ if(!x.classList.contains('checked')) on=false; });
+  row.classList.toggle('checked', on);
+  var tip = document.getElementById('allPickTip');
+  if(tip) tip.style.display = on ? 'block' : 'none';
+  var lab = row.querySelector('span:last-child');
+  if(lab) lab.textContent = on ? '已开启' : '开启后自动加入全部模块';
+  var mC = document.getElementById('mC');
+  if(mC && mC._createCtl) mC._createCtl();
+}
+
 function showAddCol(){
   var quotaNote = (state.isSub||state.isPub) ? '<div style="font-size:12px;color:#FF9500;margin:0 0 8px">'+(state.isPub?'公共用户可无限生成':'剩余可生成 '+(state.subInfo&&state.subInfo.remaining!=null?state.subInfo.remaining:'-')+' 次')+' · 名称仅限数字或英文</div>' : '';
   var body;
@@ -463,19 +492,20 @@ function showAddCol(){
         '<div style="font-size:13px;color:var(--text2);line-height:1.7">'+esc(pubDesc)+'</div>'+
         '<div style="font-size:12px;color:var(--text3);margin-top:6px">标题 / 描述 / 图标为固定模板，不可更改</div>'+
       '</div>'+
-      '<label>选择模块（必须至少选择 1 个才能创建）</label>'+buildPickList([]);
+      buildAllPickRow(false)+'<label>选择模块（必须至少选择 1 个才能创建）</label>'+buildPickList([]);
   } else {
     body = quotaNote+
       '<label>标题</label><input class="input" id="colTitle" placeholder="合集名称'+(state.isSub?'（仅数字或英文）':'')+'">'+
       '<label>描述</label><input class="input" id="colDesc" placeholder="可选">'+
       '<label>图标 URL</label><input class="input" id="colIcon" placeholder="可选，https://...">'+
-      '<label>选择模块（必须至少选择 1 个才能创建）</label>'+buildPickList([]);
+      buildAllPickRow(false)+'<label>选择模块（必须至少选择 1 个才能创建）</label>'+buildPickList([]);
   }
   showModal('新建合集', body, function(close){
     var picked = [];
-    document.querySelectorAll('.pick-item.checked').forEach(function(el){ picked.push(el.dataset.mid); });
+    document.querySelectorAll('.pick-item[data-mid].checked').forEach(function(el){ picked.push(el.dataset.mid); });
     if(!picked.length){ toast('请至少选择一个模块'); return; }
-    var payload = state.isPub ? {moduleIds:picked} : {title:document.getElementById('colTitle').value.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim(),moduleIds:picked};
+    var allOn = document.getElementById('allPickRow') ? document.getElementById('allPickRow').classList.contains('checked') : false;
+    var payload = state.isPub ? {moduleIds:picked,autoAll:allOn} : {title:document.getElementById('colTitle').value.trim(),description:document.getElementById('colDesc').value.trim(),icon_url:document.getElementById('colIcon').value.trim(),moduleIds:picked,autoAll:allOn};
     if(!state.isPub && !payload.title){ toast('请输入标题'); return; }
     if(state.isSub && !/^[A-Za-z0-9]+$/.test(payload.title)){ toast('合集名称只能为数字或英文'); return; }
     api('/api/admin/collections',{method:'POST',json:payload}).then(function(r){
@@ -487,7 +517,8 @@ function showAddCol(){
   });
   // 未选择任何模块时确认按钮不可点击
   var mC = document.getElementById('mC');
-  function refreshBtn(){ var any = document.querySelectorAll('.pick-item.checked').length>0; mC.disabled = !any; mC.style.opacity = any?'1':'0.5'; }
+  function refreshBtn(){ var any = document.querySelectorAll('.pick-item[data-mid].checked').length>0; mC.disabled = !any; mC.style.opacity = any?'1':'0.5'; }
+  mC._createCtl = refreshBtn;
   var items = document.querySelectorAll('.pick-item');
   for(var i=0;i<items.length;i++) items[i].addEventListener('click', refreshBtn);
   refreshBtn();
@@ -504,7 +535,8 @@ function showColModules(id){
     var name = m && m.title ? m.title : '未命名模块';
     rows += '<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;background:var(--card);border:1px solid var(--sep);font-size:13px"><span style="width:22px;flex-shrink:0;color:var(--text3);font-size:12px">'+(i+1)+'</span><span style="flex:1;min-width:0">'+esc(name)+'</span></div>';
   });
-  showModal('合集模块 — '+esc(col.title), '<div style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto">'+rows+'</div><p style="font-size:12px;color:var(--text3);margin:10px 0 0">共 '+ids.length+' 个模块</p>', function(close){ close(); });
+  var autoTip = col.autoAll ? '<p style="font-size:12px;color:#FF9500;margin:0 0 8px">此合集已开启「全部模块」：管理者新上传的模块会自动加入。</p>' : '';
+  showModal('合集模块 — '+esc(col.title), autoTip+'<div style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto">'+rows+'</div><p style="font-size:12px;color:var(--text3);margin:10px 0 0">共 '+ids.length+' 个模块'+(col.autoAll?'（自动更新中）':'')+'</p>', function(close){ close(); });
 }
 
 function showEditCol(id){
@@ -533,23 +565,27 @@ function showPickMods(colId){
   if(!col) return;
   if(!state.modules.length){ toast('请先上传模块'); return; }
   var modIds = col.moduleIds || [];
-  var body='<label>选择模块（勾选已有模块添加到合集）</label><div class="pick-list">';
+  var isAll = !!col.autoAll;
+  var body=buildAllPickRow(isAll)+'<label>选择模块（勾选已有模块添加到合集）</label><div class="pick-list">';
   state.modules.forEach(function(m){
-    var ck = modIds.indexOf(m.id)>=0 ? ' checked' : '';
+    var ck = (isAll || modIds.indexOf(m.id)>=0) ? ' checked' : '';
     body+='<div class="pick-item'+ck+'" data-mid="'+m.id+'" onclick="togglePick(this)"><span style="flex:1">'+esc(m.title||m.filename)+'</span><span style="font-size:11px;color:var(--text3)">'+fmt(m.file_size)+'</span></div>';
   });
   body+='</div>';
   showModal('挑选模块 — '+esc(col.title), body, function(close){
     var picked = [];
-    document.querySelectorAll('.pick-item.checked').forEach(function(el){ picked.push(el.dataset.mid); });
-    api('/api/admin/collections',{method:'PATCH',json:{id:colId,moduleIds:picked}}).then(function(r){
-      if(r&&r.ok){ col.moduleIds = picked; toast('已更新'); close(); loadAll(); } else toast('更新失败');
+    document.querySelectorAll('.pick-item[data-mid].checked').forEach(function(el){ picked.push(el.dataset.mid); });
+    var allOn = document.getElementById('allPickRow') ? document.getElementById('allPickRow').classList.contains('checked') : false;
+    api('/api/admin/collections',{method:'PATCH',json:{id:colId,moduleIds:picked,autoAll:allOn}}).then(function(r){
+      if(r&&r.ok){ col.moduleIds = picked; col.autoAll = allOn; toast(allOn?'已开启全部模块，之后新上传的模块将自动加入':'已更新'); close(); loadAll(); } else toast('更新失败');
     });
   });
 }
 
 function togglePick(el){
   el.classList.toggle('checked');
+  var row = document.getElementById('allPickRow');
+  if(row) syncAllPickState();
 }
 
 function promptDeleteCol(id){
@@ -994,7 +1030,23 @@ export default {
             await env.REX_KV.put('file:'+id, buf);
           }
         }
-        if (added.length || updated.length) { await saveModules(mods); return json({ ok: true, added, updated }, 201); }
+        if (added.length || updated.length) {
+          await saveModules(mods);
+          // 自动加入开启了「选择全部模块」的合集
+          const acols = await getCollections();
+          let achanged = false;
+          for (const m of added) {
+            acols.forEach(c => {
+              if (c.autoAll && Array.isArray(c.moduleIds) && c.moduleIds.indexOf(m.id) < 0) {
+                c.moduleIds.push(m.id);
+                c.updated_at = Date.now();
+                achanged = true;
+              }
+            });
+          }
+          if (achanged) await saveCollections(acols);
+          return json({ ok: true, added, updated }, 201);
+        }
         return json({ error: 'no valid files' }, 400);
       }
       if (method === 'DELETE') {
@@ -1234,7 +1286,12 @@ export default {
       }
       if (method === 'POST') {
         const body = await request.json().catch(()=>({}));
-        const moduleIds = Array.isArray(body.moduleIds) ? body.moduleIds.filter(function(x){ return typeof x === 'string' && x; }) : [];
+        const autoAll = body.autoAll === true;
+        let moduleIds = Array.isArray(body.moduleIds) ? body.moduleIds.filter(function(x){ return typeof x === 'string' && x; }) : [];
+        if (autoAll && moduleIds.length === 0) {
+          const allMods = await getModules();
+          moduleIds = allMods.map(m => m.id);
+        }
         if (moduleIds.length === 0) return json({ error: '请至少选择一个模块' }, 400);
         const now = Date.now();
         let title, description, icon_url;
@@ -1263,6 +1320,7 @@ export default {
           id: colId, slug, title: title,
           description: description, icon_url: icon_url,
           moduleIds: moduleIds,
+          autoAll: autoAll || false,
           owner: sub ? subTag : (pub ? 'pub' : 'admin'),
           created_at: now, updated_at: now
         };
@@ -1291,6 +1349,13 @@ export default {
         if (body.description !== undefined) col.description = body.description;
         if (body.icon_url !== undefined) col.icon_url = body.icon_url;
         if (body.moduleIds !== undefined) col.moduleIds = body.moduleIds;
+        if (body.autoAll !== undefined) {
+          col.autoAll = body.autoAll === true;
+          if (col.autoAll) {
+            const allMods = await getModules();
+            col.moduleIds = (Array.isArray(body.moduleIds) && body.moduleIds.length) ? body.moduleIds : allMods.map(m => m.id);
+          }
+        }
         col.updated_at = Date.now();
         await saveCollections(cols);
         return json({ ok: true });
